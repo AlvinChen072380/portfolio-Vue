@@ -42,12 +42,15 @@ defineProps({
 }
 .skill-card:hover {
   background: #f1f3f5;
-  transform: translateY(-2px);
+  /* [Shadow] 與 project-card 一致：高層陰影 + 上移 3px */
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
 }
 .skill-card.active {
   background: #fff;
   border-color: var(--accent-color);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  /* [Shadow] active 狀態使用 md 層級 */
+  box-shadow: var(--shadow-md);
 }
 .skill-logo {
   width: 60px;

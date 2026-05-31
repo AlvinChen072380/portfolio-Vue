@@ -34,6 +34,8 @@ const toggleMenu = () => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4) 0;
+  /* [Shadow] 頁首輕微陰影，與內容區形成層次 */
+  filter: drop-shadow(0 2px 6px rgba(70, 50, 30, 0.06));
 }
 
 .logo {

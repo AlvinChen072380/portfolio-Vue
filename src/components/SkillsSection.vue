@@ -174,6 +174,9 @@ const targetColor = computed(() => {
   border-radius: 1.5rem;
   overflow: hidden;
   display: flex;
+  /* [Shadow] 技能列表卡片 */
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease;
   flex-direction: column;
   position: relative;
       max-height: 650px;
@@ -262,6 +265,9 @@ const targetColor = computed(() => {
   border-radius: 1.5rem;
   padding: var(--space-4);
   flex: 1;
+  /* [Shadow] 右側資訊卡 */
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -350,6 +356,17 @@ const targetColor = computed(() => {
   margin: var(--space-1) 0;
   z-index: 2;
 }
+/* [Shadow] Hover inner glow — 純顯示卡片不位移，只有光暈提示 */
+.project-card.skills-wrapper:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(181, 58, 38, 0.06);
+}
+.system-feed-card:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(181, 58, 38, 0.06);
+}
+.performance-card:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(255, 255, 255, 0.12);
+}
+
 .score-label {
   font-size: 0.7rem;
   letter-spacing: 0.1em;

@@ -184,6 +184,14 @@ onUnmounted(() => gsapCtx?.revert());
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* [Shadow] 中層陰影，卡片從背景浮起 */
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.project-card:hover {
+  /* [Shadow] hover 時提升至高層陰影 + 微上移 */
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
 }
 
 .project-image {
@@ -322,6 +330,13 @@ onUnmounted(() => gsapCtx?.revert());
   border-radius: 1.5rem;
   padding: var(--space-4);
   flex: 1;
+  /* [Shadow] 右側資訊卡 */
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease;
+}
+/* [Shadow] 白色卡片用暖色 inner glow */
+.system-feed-card:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(181, 58, 38, 0.06);
 }
 
 .feed-header {
@@ -369,7 +384,11 @@ onUnmounted(() => gsapCtx?.revert());
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease; /* [Part2] 錯誤狀態切換時平滑過渡 */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* [Part2] */
+}
+/* [Shadow] 深色卡片用白色 inner glow */
+.performance-card:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(255, 255, 255, 0.12);
 }
 /* [Part2] 分數為 null（如 NO_LCP）時顯示灰色警告狀態 */
 .performance-card.is-error {

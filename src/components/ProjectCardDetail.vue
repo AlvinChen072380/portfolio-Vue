@@ -125,6 +125,13 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
   background: var(--card-bg);
   border-radius: 1.5rem;
   padding: var(--space-6);
+  /* [Shadow] 詳細頁白色大卡片 */
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.3s ease;
+}
+/* [Shadow] 大卡片 inner glow，強度略低避免過於搶眼 */
+.detail-container:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 30px rgba(181, 58, 38, 0.04);
 }
 
 .hero-section {
@@ -223,6 +230,12 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
   padding: var(--space-4);
   border-radius: 1rem;
   margin-top: 2rem;
+  /* [Shadow] 側邊資訊卡 */
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s ease;
+}
+.info-card:hover {
+  box-shadow: var(--shadow-md), inset 0 0 16px rgba(181, 58, 38, 0.06);
 }
 .info-card h3 {
   font-size: 1rem;

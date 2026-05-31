@@ -52,6 +52,11 @@ const onLeave = (el, done) => {
   --accent-hover: #9A301E;
   --card-bg: #FFFFFF;
 
+  /* Shadow Elevation System — 暖棕調陰影，與 #EBE4DB 背景自然融合 */
+  --shadow-sm: 0 2px 8px rgba(70, 50, 30, 0.07);
+  --shadow-md: 0 4px 16px rgba(70, 50, 30, 0.10);
+  --shadow-lg: 0 12px 32px rgba(70, 50, 30, 0.13);
+
   /* 8px Spacing System (1rem = 16px) */
   --space-0-5: 0.25rem;  /* 4px */
   --space-1: 0.5rem;     /* 8px */
@@ -72,7 +77,8 @@ body {
   padding: 0;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  /* [Font] Albert Sans 取代 Helvetica Neue，確保跨平台字體一致 */
+  font-family: 'Albert Sans', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

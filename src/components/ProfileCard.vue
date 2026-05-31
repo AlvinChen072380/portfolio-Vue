@@ -103,7 +103,8 @@ onUnmounted(() => gsapCtx?.revert())
   font-size: 1.5rem;
   font-weight: bold;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  /* [Shadow] 主視覺圖片使用高層陰影，Token 取代硬編碼 */
+  box-shadow: var(--shadow-lg);
 }
 
 .profile-image-wrapper img {

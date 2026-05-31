@@ -606,6 +606,108 @@ Step 7 的 `flex: 1` vs `width: 100%`：推薦 `flex: 1`，最後選 `width: 100
 
 ---
 
+## [2026-05-31] ✨ 新增：全站 Web Font — Albert Sans
+
+### 📁 異動檔案
+- `index.html` — 新增 Google Fonts `<link>`（preconnect + stylesheet）
+- `src/App.vue` — `body font-family` 改為 `'Albert Sans', 'Helvetica Neue', Arial, sans-serif`
+
+### ❓ 為什麼需要？
+原字體 `Helvetica Neue` 是 macOS/iOS 內建字體，Windows 系統沒有此字型會 fallback 到 Arial，導致跨平台顯示不一致。引入 Google Font 確保所有系統顯示相同字體。
+
+`Albert Sans` 特性：幾何風格現代無襯線，線條乾淨，與作品集的極簡暖調風格相符。
+
+### 🎯 實作方式
+
+```html
+<!-- index.html — preconnect 先建立 DNS 連線，加快字體載入 -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+```
+
+載入的字重：300 / 400 / 500 / 600 / 700（正體）+ 400 italic（斜體，供姓名 `.highlight` 對比）
+
+### 設計注意：保留 `.highlight` 的 serif 對比
+
+`ProfileCard.vue` 的姓名使用 `font-family: serif; font-style: italic`，與全站 Albert Sans 形成**無襯線 vs 有襯線**的字型對比，讓姓名視覺上更突出，這是刻意保留的設計決策。
+
+### 📚 基礎知識：Google Fonts 最佳載入方式
+
+```html
+<!-- Step 1: preconnect — 提前建立 DNS + TLS 連線，節省 ~150-300ms -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<!-- Step 2: 只載入需要的字重，避免不必要的網路請求 -->
+<!-- &display=swap — 文字先用 fallback 字體顯示，字體載入後再替換（FOUT），避免 FOIT（不可見文字） -->
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,400;0,600&display=swap" rel="stylesheet" />
+```
+
+**字重選擇原則**：每多載入一個字重約增加 20-40KB 網路請求，只載入實際用到的：
+- 400: 內文
+- 500: 標籤、按鈕
+- 600: 標題、強調
+- 700: 大標題
+- 300 / italic: 視需求選用
+
+---
+
+## [2026-05-31] ✨ 新增：Shadow Elevation System（陰影立體感）
+
+### 📁 異動檔案
+- `src/App.vue` — `:root` 新增 `--shadow-sm/md/lg` 三層 Token
+- `src/components/NavBar.vue` — 頁首加入 `drop-shadow`
+- `src/components/WorksSection.vue` — `project-card` 靜態 + hover 陰影；`system-feed-card` 靜態陰影
+- `src/components/SkillsSection.vue` — `skills-wrapper` 與 `system-feed-card` 靜態陰影
+- `src/components/SkillCard.vue` — hover 與 active 狀態加入陰影
+- `src/components/ProfileCard.vue` — 硬編碼陰影改為 `--shadow-lg` Token
+- `src/components/ProjectCardDetail.vue` — `detail-container` 靜態陰影
+
+### ❓ 為什麼需要？
+原本大部分卡片靠「白色 vs 米色背景」的顏色差異產生視覺區隔，平面感明顯。依照 `ui-ux-pro-max` Skill 的 `elevation-consistent` 規則，需要建立一致的陰影層次系統。
+
+### 🎯 設計決策：暖棕調陰影
+
+使用 `rgba(70, 50, 30, x)` 而非純黑 `rgba(0, 0, 0, x)`，原因：
+- 背景色 `#EBE4DB` 為暖米色，純黑陰影會有冷色感與背景脫節
+- 暖棕調陰影有如紙張疊放的自然光影，與整體設計語言一致
+
+```css
+:root {
+  --shadow-sm: 0 2px 8px rgba(70, 50, 30, 0.07);   /* NavBar */
+  --shadow-md: 0 4px 16px rgba(70, 50, 30, 0.10);  /* 一般卡片 */
+  --shadow-lg: 0 12px 32px rgba(70, 50, 30, 0.13); /* 主視覺、hover */
+}
+```
+
+### 🎯 Elevation 應用對應表
+
+| 元素 | 層級 | 行為 |
+|------|------|------|
+| NavBar | `filter: drop-shadow(sm)` | 靜態，與內容區分 |
+| `project-card` | `--shadow-md` → hover `--shadow-lg` | 靜態 + hover 提升 |
+| `system-feed-card`（Works/Skills）| `--shadow-md` | 靜態 |
+| `skills-wrapper` | `--shadow-md` | 靜態 |
+| `skill-card` | hover/active `--shadow-md` | 互動狀態 |
+| `profile-image-wrapper` | `--shadow-lg` | 主視覺強調 |
+| `detail-container` | `--shadow-md` | 靜態 |
+| `performance-card` | 不加（深色背景自帶對比） | — |
+
+### 📚 基礎知識：box-shadow vs filter: drop-shadow
+
+| | `box-shadow` | `filter: drop-shadow()` |
+|--|-------------|------------------------|
+| **作用對象** | 矩形邊界框（border-box）| 實際渲染的像素形狀 |
+| **圓角** | 跟隨 `border-radius` ✅ | 跟隨實際形狀 ✅ |
+| **透明元素** | 不穿透透明區域 | 穿透透明區域，貼合形狀 |
+| **效能** | GPU 加速 ✅ | 需要合成層，較耗效能 |
+| **適用情境** | 一般卡片、按鈕 | SVG、PNG（有透明背景）、複雜形狀 |
+
+NavBar 使用 `filter: drop-shadow` 是因為它不是一個有邊框的卡片，而是一個透明背景的橫條，讓陰影效果更自然。
+
+---
+
 ## [2026-05-30] 📋 第二階段總結：作品資料補足 + GSAP 動畫實作
 
 ### 完成項目一覽
