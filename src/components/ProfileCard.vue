@@ -1,40 +1,75 @@
 <script setup>
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { gsap } from 'gsap'
+
 defineProps({
   profile: {
     type: Object,
     required: true
   }
 })
+
+// [GSAP Step J] template refs — 右側各內容區塊依序進場
+const imageRef = ref(null)
+const tagRef = ref(null)
+const headlineRef = ref(null)
+const bioRef = ref(null)
+const btnsRef = ref(null)
+
+// [GSAP Fix] 用 gsap.context() 追蹤所有動畫，onUnmounted 時 revert() 一次清除
+let gsapCtx = null
+
+onMounted(async () => {
+  // [GSAP Fix] nextTick 等 Vue 完成 DOM 更新後再啟動動畫
+  // 避免與頁面切換的 opacity 動畫疊加，導致 opacity 相乘產生半透明效果
+  await nextTick()
+
+  gsapCtx = gsap.context(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out', clearProps: 'all' } })
+
+    tl.from(imageRef.value,    { opacity: 0, x: -20, duration: 0.5 })
+      .from(tagRef.value,      { opacity: 0, y: 10,  duration: 0.3 }, '-=0.15')
+      .from(headlineRef.value, { opacity: 0, x: -15, duration: 0.4 }, '-=0.15')
+      .from(bioRef.value,      { opacity: 0, y: 10,  duration: 0.35 }, '-=0.1')
+      .from(btnsRef.value.children, {
+        opacity: 0, y: 8, duration: 0.3, stagger: 0.08
+      }, '-=0.1')
+  })
+})
+
+// [GSAP Fix] 元件卸載時 revert() — 殺掉所有進行中的 tween 並清除 inline style
+onUnmounted(() => gsapCtx?.revert())
 </script>
 
 <template>
   <div class="profile-hero">
     <!-- 左側圖片區塊 -->
-    <div class="profile-image-wrapper">
+    <div class="profile-image-wrapper" ref="imageRef">
       <img v-if="profile.avatar" :src="profile.avatar" :alt="profile.name" />
       <div v-else class="placeholder-image">Hero Image Area</div>
     </div>
 
     <!-- 右側文案區塊 -->
     <div class="profile-content">
-      <div class="tag-pill">{{ profile.title }}</div>
-      
-      <h1 class="headline">
+      <div class="tag-pill" ref="tagRef">{{ profile.title }}</div>
+
+      <h1 class="headline" ref="headlineRef">
         Hello! I'm<br/>
         <span class="highlight">{{ profile.name }}</span>
       </h1>
-      
+
       <!-- 單欄大段落顯示 bio -->
-      <div class="bio-section">
+      <div class="bio-section" ref="bioRef">
         <p class="bio-text">{{ profile.bio }}</p>
       </div>
 
-      <div class="action-buttons">
-        <a 
-          v-for="(link, index) in profile.links" 
-          :key="link.platform" 
-          :href="link.url" 
-          target="_blank" 
+      <div class="action-buttons" ref="btnsRef">
+        <a
+          v-for="(link, index) in profile.links"
+          :key="link.platform"
+          :href="link.url"
+          target="_blank"
+          rel="noopener noreferrer"
           class="btn"
           :class="index === 0 ? 'primary' : 'secondary'"
         >
@@ -49,7 +84,7 @@ defineProps({
 .profile-hero {
   display: grid;
   grid-template-columns: 4fr 6fr;
-  gap: 4rem;
+  gap: var(--space-8);
   align-items: center;
   width: 100%;
   max-width: 1200px;
@@ -80,12 +115,12 @@ defineProps({
 .profile-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-3);
 }
 
 .tag-pill {
   align-self: flex-start;
-  padding: 0.5rem 1rem;
+  padding: var(--space-1) var(--space-2);
   background-color: white;
   border-radius: 2rem;
   font-size: 0.9rem;
@@ -109,7 +144,7 @@ defineProps({
 }
 
 .bio-section {
-  margin-top: 1rem;
+  margin-top: var(--space-2);
 }
 
 .bio-text {
@@ -121,13 +156,13 @@ defineProps({
 
 .action-buttons {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
   flex-wrap: wrap;
 }
 
 .btn {
-  padding: 1rem 2rem;
+  padding: var(--space-2) var(--space-4);
   border-radius: 2rem;
   border: none;
   font-size: 1rem;
@@ -165,7 +200,7 @@ defineProps({
 @media (max-width: 992px) {
   .profile-hero {
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: var(--space-6);
   }
   .profile-image-wrapper {
     aspect-ratio: 16/9;

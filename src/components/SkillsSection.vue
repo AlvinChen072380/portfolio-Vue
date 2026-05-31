@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { gsap } from 'gsap'
 import SkillCard from './SkillCard.vue'
 
 const props = defineProps({
@@ -22,6 +23,39 @@ const selectSkill = (skill) => {
   activeSkill.value = skill
 }
 
+// [Feat] 偵測 skills-container 是否已滾動，控制 scroll-hint 的顯示
+const isScrolled = ref(false)
+const handleScroll = (e) => {
+  isScrolled.value = e.target.scrollTop > 0
+}
+
+// [GSAP Step I] template refs — 標題與技能卡片容器
+const titleRef = ref(null)
+const skillListRef = ref(null)
+
+// [GSAP Fix] gsap.context() 追蹤所有動畫，onUnmounted 時統一清除
+let gsapCtx = null
+
+onMounted(async () => {
+  // [GSAP Fix] nextTick 避免與頁面切換 opacity 動畫疊加造成半透明效果
+  await nextTick()
+
+  gsapCtx = gsap.context(() => {
+    gsap.from(titleRef.value, {
+      opacity: 0, x: -20, duration: 0.45,
+      ease: 'power2.out', clearProps: 'all'
+    })
+    gsap.from(skillListRef.value.children, {
+      opacity: 0, y: 10, duration: 0.35,
+      stagger: 0.06, delay: 0.1,
+      ease: 'power2.out', clearProps: 'all'
+    })
+  })
+})
+
+// [GSAP Fix] 元件卸載時清除所有 tween 與 inline style
+onUnmounted(() => gsapCtx?.revert())
+
 const targetSize = computed(() => {
   return 40 + (activeSkill.value.rating * 12) + 'px'
 })
@@ -40,13 +74,13 @@ const targetColor = computed(() => {
 
 <template>
   <section class="works-section">
-    <h2 class="section-title">Skills & Expertise</h2>
+    <h2 class="section-title" ref="titleRef">Skills & Expertise</h2>
     
     <div class="works-layout">
       <!-- 左側：技能列表 -->
       <div class="project-card skills-wrapper">
-        <div class="skills-container">
-          <div class="skills-list">
+        <div class="skills-container" @scroll="handleScroll">
+          <div class="skills-list" ref="skillListRef">
             <SkillCard
               v-for="skill in currentCategory.skills" 
               :key="skill.id" 
@@ -58,7 +92,8 @@ const targetColor = computed(() => {
       </div> <!-- /skills-container -->
         
         <!-- 向下滑動提示 -->
-        <div class="scroll-hint">
+        <!-- [Feat] is-hidden class 在使用者滾動後淡出提示 -->
+        <div class="scroll-hint" :class="{ 'is-hidden': isScrolled }">
           <span class="bounce-icon">↓</span> Scroll for more
         </div>
       </div>
@@ -121,14 +156,16 @@ const targetColor = computed(() => {
 .section-title {
   font-size: 2.5rem;
   font-weight: 500;
-  margin-bottom: 3rem;
+  margin-bottom: var(--space-4); /* [Layout] 48px → 32px，與 WorksSection 一致 */
 }
 .works-layout {
   display: grid;
   grid-template-columns: 7fr 3fr auto;
-  gap: 2rem;
+  gap: var(--space-4);
   align-items: stretch;
-  min-height: 600px; /* 固定高度讓左邊可以捲動 */
+  /* [Layout] clamp：最小 380px，視口 55%，上限 480px — 與 WorksSection 一致 */
+  min-height: clamp(380px, 55dvh, 480px);
+  margin-bottom: var(--space-4);
 }
 
 /* 左側：技能容器 Wrapper */
@@ -145,7 +182,7 @@ const targetColor = computed(() => {
 
 .skills-container {
   flex: 1;
-  padding: 1.5rem;
+  padding: var(--space-3);
   overflow-y: auto; /* 允許向下捲動 */
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
@@ -155,21 +192,25 @@ const targetColor = computed(() => {
 /* Scroll Hint 動畫與樣式 */
 .scroll-hint {
   position: absolute;
-  bottom: 1rem;
+  bottom: var(--space-2);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.9);
-  padding: 0.5rem 1rem;
+  padding: var(--space-1) var(--space-2);
   border-radius: 2rem;
   font-size: 0.8rem;
   color: var(--accent-color);
   font-weight: bold;
-  pointer-events: none; /* 不干擾點擊 */
+  pointer-events: none;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-1);
   z-index: 10;
+  transition: opacity 0.3s ease; /* [Feat] 淡入淡出過渡 */
+}
+.scroll-hint.is-hidden {
+  opacity: 0; /* [Feat] 使用者開始滾動後淡出，回頂後淡回 */
 }
 
 .bounce-icon {
@@ -198,14 +239,14 @@ const targetColor = computed(() => {
 .skills-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-2);
 }
 
 /* 右側卡片容器 */
 .side-cards {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-4);
 }
 .side-cards > div {
   flex: 1 1 0; /* 關鍵：讓兩個子元素強迫平分剩餘空間 */
@@ -219,7 +260,7 @@ const targetColor = computed(() => {
 .system-feed-card {
   background: var(--card-bg);
   border-radius: 1.5rem;
-  padding: 2rem;
+  padding: var(--space-4);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -228,18 +269,18 @@ const targetColor = computed(() => {
 .feed-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-1);
   color: var(--accent-color);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-3);
   flex-shrink: 0;
 }
 .feed-list {
   flex: 1;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding-right: var(--space-1);
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
@@ -253,12 +294,12 @@ const targetColor = computed(() => {
   font-family: monospace;
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-bottom: 0.8rem;
+  margin-bottom: var(--space-1);
   line-height: 1.6;
 }
 .feed-item .arrow {
   color: #ccc;
-  margin-right: 0.5rem;
+  margin-right: var(--space-1);
 }
 .text.highlight {
   color: var(--text-primary);
@@ -269,7 +310,7 @@ const targetColor = computed(() => {
 .performance-card {
   background-color: #212529; /* 深色背景更能凸顯發光 */
   border-radius: 1.5rem;
-  padding: 2rem;
+  padding: var(--space-4);
   color: white;
   display: flex;
   flex-direction: column;
@@ -286,7 +327,7 @@ const targetColor = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-2);
 }
 .target-ring {
   position: absolute;
@@ -306,7 +347,7 @@ const targetColor = computed(() => {
 .score-value {
   font-size: 2rem;
   font-weight: 700;
-  margin: 0.5rem 0;
+  margin: var(--space-1) 0;
   z-index: 2;
 }
 .score-label {
@@ -321,8 +362,8 @@ const targetColor = computed(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1rem;
-  padding-left: 1rem;
+  gap: var(--space-2);
+  padding-left: var(--space-2);
 }
 .pagination .dot {
   width: 12px;
@@ -368,7 +409,7 @@ const targetColor = computed(() => {
   .pagination {
     flex-direction: row;
     padding-left: 0;
-    padding-bottom: 20px;
+    padding-bottom: var(--space-3);
   }
 }
 
@@ -376,16 +417,16 @@ const targetColor = computed(() => {
   .side-cards {
     flex-direction: column;
   }
+  /* [Fix #8d] 修正縮排，屬性對齊選擇器層級 */
   .side-cards > div {
-  flex: 1 ; /* 關鍵：讓兩個子元素強迫平分剩餘空間 */  
-  /* 如果內容真的太多超過卡片高度，就讓卡片內部自己產生捲軸 */
-  overflow-y: auto; 
-}
+    flex: 1;
+    overflow-y: auto;
+  }
   .project-card.skills-wrapper {
     max-height: 350px;
   }
-   .pagination {
-    padding-bottom: 20px;
+  .pagination {
+    padding-bottom: var(--space-3);
   }
 }
 </style>

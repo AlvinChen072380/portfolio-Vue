@@ -32,8 +32,8 @@ defineProps({
 .skill-card {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  gap: var(--space-3);
+  padding: var(--space-3);
   border-radius: 1rem;
   background: #f8f9fa;
   cursor: pointer;
@@ -65,13 +65,13 @@ defineProps({
   flex: 1;
 }
 .skill-name {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-1) 0;
   font-size: 1.25rem;
   color: var(--text-primary);
 }
 .skill-stars {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--space-0-5);
 }
 .star {
   color: #dee2e6;

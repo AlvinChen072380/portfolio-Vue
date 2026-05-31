@@ -4,13 +4,13 @@ import ProfileCard from '../components/ProfileCard.vue'
 
 // 模擬由上層 (View) 提供的資料
 const profileData = ref({
-  name: 'Alex Developer',
-  title: 'Senior Frontend Engineer',
-  avatar: '', // 留空以展示大寫首字母的佔位符
-  bio: 'Hello! I am a passionate frontend developer specializing in Vue.js and modern web technologies. I love creating beautiful, performant, and accessible user interfaces. With over 5 years of experience, I bring ideas to life through code.',
+  name: 'Alvin Chen',
+  title: 'Developer',
+  avatar: '/avatar-acupy.jpg',
+  bio: '設計師出身、曾任咖啡師，現為前端開發者。我相信好的程式碼如同一杯精品咖啡——需要嚴謹的配方、層層疊加的細節，以及對使用者的極致追求。這段跨領域旅程讓我能同時用設計師的眼睛與工程師的邏輯開發產品，並持續深耕 TypeScript 與 Next.js 進階應用。',
   links: [
-    { platform: 'GitHub', url: 'https://github.com' },
-    { platform: 'LinkedIn', url: 'https://linkedin.com' },
+    { platform: 'GitHub', url: 'https://github.com/AlvinChen072380' },
+    { platform: '104', url: 'https://pda.104.com.tw/profile/edit?vno=74rk3wa0w' },
   ]
 })
 </script>
@@ -23,11 +23,12 @@ const profileData = ref({
 
 <style scoped>
 .about-page {
-  padding: 0rem 2rem;
-  min-height: auto; /* 扣除 NavBar 高度 */
+  /* [Fix #8b] 移除多餘水平 padding，app-container 已有全域 padding */
+  /* [Fix #8b] min-height: auto 只是取消限制，非「扣除 NavBar 高度」 */
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 5rem;
 }
 
 </style>

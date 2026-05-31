@@ -33,8 +33,8 @@ const skillCategories = ref([
 
 <style scoped>
 .skill-page {
-  padding: 0rem 0rem;
+  /* [Fix #8c] 移除 padding: 0rem 0rem（等同 padding: 0，為多餘寫法） */
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0;
 }
 </style>

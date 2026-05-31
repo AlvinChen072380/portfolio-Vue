@@ -1,10 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useLikes } from '../composables/useLikes.js'
 
 const props = defineProps({
-  projectId: {
-    type: String,
+  project: {
+    type: Object,
     required: true
   }
 })
@@ -15,14 +15,21 @@ const goBack = () => {
   emit('navigate-back')
 }
 
-// 收藏與愛心功能邏輯使用全域狀態
 const { isLiked, toggleLike } = useLikes()
 
-const isProjectLiked = computed(() => isLiked(props.projectId))
+const isProjectLiked = computed(() => isLiked(props.project.id))
 
 const handleToggleLike = () => {
-  toggleLike(props.projectId)
+  toggleLike(props.project.id)
 }
+
+// [Feat] 偵測 window 捲動狀態，控制 scroll-hint-fixed 的顯示
+const isPageScrolled = ref(false)
+const handlePageScroll = () => {
+  isPageScrolled.value = window.scrollY > 0
+}
+onMounted(() => window.addEventListener('scroll', handlePageScroll))
+onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
 </script>
 
 <template>
@@ -32,10 +39,10 @@ const handleToggleLike = () => {
     <div class="detail-container">
       <div class="hero-section">
         <div class="title-row">
-          <h1 class="project-title">Project: {{ props.projectId }}</h1>
-          <button 
-            class="like-btn" 
-            :class="{ 'is-liked': isProjectLiked }" 
+          <h1 class="project-title">{{ project.title }}</h1>
+          <button
+            class="like-btn"
+            :class="{ 'is-liked': isProjectLiked }"
             @click="handleToggleLike"
             title="Favorite this project"
           >
@@ -43,49 +50,42 @@ const handleToggleLike = () => {
           </button>
         </div>
         <div class="tags">
-          <span class="tag">FinTech</span>
-          <span class="tag">Web App</span>
+          <span v-for="tag in project.tags" :key="tag" class="tag">{{ tag }}</span>
         </div>
       </div>
-      
+
       <div class="content-section">
         <div class="main-content">
+          <!-- [Part2] 替換為真實大圖 -->
           <div class="project-image-large">
-            <div class="placeholder-image">Project Image Area</div>
+            <img :src="project.image" :alt="project.title" />
           </div>
-          
+
           <h2>Overview</h2>
-          <p>
-            This is a detailed overview of the Nexus Analytics Dashboard. It describes the problem statement,
-            the proposed solution, and the final execution. The project focuses on processing real-time data
-            and presenting it in an intuitive manner for financial analysts.
-          </p>
-          
+          <p>{{ project.overview }}</p>
+
           <h2>Architecture</h2>
-          <p>
-            Built with Vue 3, utilizing Composition API and Pinia for state management. The backend is powered
-            by Node.js and MongoDB. High-performance charts are rendered using D3.js.
-          </p>
+          <p>{{ project.architecture }}</p>
         </div>
-        
+
         <div class="sidebar">
           <div class="info-card">
             <h3>Role</h3>
-            <p>Lead Frontend Developer</p>
-            
+            <p>{{ project.role }}</p>
+
             <h3>Timeline</h3>
-            <p>3 Months (Q1 2026)</p>
-            
+            <p>{{ project.timeline }}</p>
+
             <h3>Links</h3>
-            <a href="https://example.com" target="_blank" class="link-btn">Live Demo ↗</a>
-            <a href="https://github.com" target="_blank" class="link-btn">GitHub Repo ↗</a>
+            <a :href="project.demoUrl" target="_blank" rel="noopener noreferrer" class="link-btn">Live Demo ↗</a>
+            <a :href="project.githubUrl" target="_blank" rel="noopener noreferrer" class="link-btn">GitHub Repo ↗</a>
           </div>
+        </div>
       </div>
     </div>
-    </div>
     
-    <!-- 全域向下滑動提示 -->
-    <div class="scroll-hint-fixed">
+    <!-- 全域向下滑動提示 [Feat] is-hidden 在使用者滾動後淡出 -->
+    <div class="scroll-hint-fixed" :class="{ 'is-hidden': isPageScrolled }">
       <span class="bounce-icon">↓</span> Scroll for more
     </div>
   </div>
@@ -93,7 +93,15 @@ const handleToggleLike = () => {
 
 <style scoped>
 .project-detail-page {
-  padding: 2rem 0;
+  padding: var(--space-4) 0;
+  /* [UX] 在元件層補強 scrollbar 隱藏
+     全域已在 style.css 對 body 設定，此處針對 Windows 環境下
+     頁面切換時可能短暫閃現的原生滾動條加上第二層防護 */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.project-detail-page::-webkit-scrollbar {
+  display: none;
 }
 
 .back-btn {
@@ -103,7 +111,7 @@ const handleToggleLike = () => {
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-4);
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -116,26 +124,25 @@ const handleToggleLike = () => {
 .detail-container {
   background: var(--card-bg);
   border-radius: 1.5rem;
-  padding: 3rem;
+  padding: var(--space-6);
 }
 
 .hero-section {
-  margin-bottom: 3rem;
+  margin-bottom: var(--space-6);
   border-bottom: 1px solid #eee;
-  padding-bottom: 2rem;
+  padding-bottom: var(--space-4);
 }
 
 .title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-2);
 }
 
 .project-title {
   font-size: 3rem;
   margin: 0;
-  text-transform: capitalize;
 }
 
 .like-btn {
@@ -144,7 +151,7 @@ const handleToggleLike = () => {
   font-size: 2.5rem;
   color: #ccc;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: var(--space-1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,7 +173,7 @@ const handleToggleLike = () => {
 
 .tags {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-1);
 }
 .tag {
   background: #F0F0F0;
@@ -180,25 +187,30 @@ const handleToggleLike = () => {
 .content-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 3rem;
+  gap: var(--space-6);
 }
 
 .project-image-large {
   width: 100%;
   aspect-ratio: 16/9;
-  background-color: #d5cfc6;
   border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #888;
-  margin-bottom: 2rem;
+  overflow: hidden; /* [Part2] 確保圖片不超出圓角 */
+  margin-bottom: var(--space-4);
+  background-color: #d5cfc6; /* 圖片載入前的佔位背景色 */
+}
+/* [Part2] 大圖填滿容器，object-fit: cover 裁切多餘部分保持比例 */
+.project-image-large img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
+/* [Layout] 上方留較大間距區隔段落，下方縮小讓標題與內文視覺貼近 */
 .main-content h2 {
   font-size: 1.5rem;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
+  margin-top: var(--space-3);   /* 32px → 24px，縮減與上段落的距離 */
+  margin-bottom: var(--space-1); /* 16px → 8px，標題與內文更緊密 */
   color: var(--accent-color);
 }
 .main-content p {
@@ -208,30 +220,31 @@ const handleToggleLike = () => {
 
 .info-card {
   background: #f8f9fa;
-  padding: 2rem;
+  padding: var(--space-4);
   border-radius: 1rem;
+  margin-top: 2rem;
 }
 .info-card h3 {
   font-size: 1rem;
   color: var(--text-primary);
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-1) 0;
 }
 .info-card p {
   color: var(--text-muted);
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 var(--space-3) 0;
   font-size: 0.95rem;
 }
 
 .link-btn {
   display: block;
-  padding: 0.8rem 1rem;
+  padding: var(--space-2);
   background: white;
   border: 1px solid #ddd;
   border-radius: 0.5rem;
   text-decoration: none;
   color: var(--text-primary);
   font-weight: 500;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-1);
   transition: all 0.2s;
   text-align: center;
 }
@@ -243,11 +256,11 @@ const handleToggleLike = () => {
 /* Scroll Hint 動畫與樣式 */
 .scroll-hint-fixed {
   position: fixed;
-  bottom: 2rem;
+  bottom: var(--space-4);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(255, 255, 255, 0.9);
-  padding: 0.8rem 1.5rem;
+  padding: var(--space-2) var(--space-3);
   border-radius: 2rem;
   font-size: 0.9rem;
   color: var(--accent-color);
@@ -256,9 +269,13 @@ const handleToggleLike = () => {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-1);
   z-index: 100;
   border: 1px solid rgba(0,0,0,0.05);
+  transition: opacity 0.3s ease; /* [Feat] 淡入淡出過渡 */
+}
+.scroll-hint-fixed.is-hidden {
+  opacity: 0; /* [Feat] 使用者開始滾動後淡出，回頂後淡回 */
 }
 
 .bounce-icon {
@@ -286,16 +303,16 @@ const handleToggleLike = () => {
 
 @media (max-width: 768px) {
   .detail-container {
-    padding: 1.5rem;
+    padding: var(--space-3);
   }
   .project-title {
     font-size: 2rem;
   }
   .content-section {
-    gap: 1.5rem;
+    gap: var(--space-3);
   }
   .info-card {
-    padding: 1.5rem;
+    padding: var(--space-3);
   }
 }
 </style>

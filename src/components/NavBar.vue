@@ -21,7 +21,8 @@ const toggleMenu = () => {
       <router-link to="/work" @click="isMenuOpen = false">Work</router-link>
     </nav>
     
-    <button class="menu-btn" @click="toggleMenu" style="z-index: 1001;">
+    <!-- [Fix #8a] 移除重複的 inline z-index，scoped CSS 已有相同設定 -->
+    <button class="menu-btn" @click="toggleMenu">
       {{ isMenuOpen ? 'Close' : 'Menu' }} <span class="arrow">{{ isMenuOpen ? '↑' : '↓' }}</span>
     </button>
   </header>
@@ -32,13 +33,13 @@ const toggleMenu = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 0;
+  padding: var(--space-4) 0;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-1);
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--accent-color);
@@ -46,7 +47,7 @@ const toggleMenu = () => {
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: var(--space-4);
 }
 
 .nav-links a {
@@ -61,17 +62,23 @@ const toggleMenu = () => {
   color: var(--accent-color);
 }
 
+/* [UX] Active route — 讓使用者知道目前所在頁面 */
+.nav-links a.router-link-active {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
 .menu-btn {
   background-color: var(--accent-color);
   color: white;
   border: none;
-  padding: 0.5rem 1.2rem;
+  padding: var(--space-1) var(--space-2);
   border-radius: 2rem;
   font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-1);
   z-index: 1001; /* Ensure button stays on top of overlay */
 }
 
@@ -92,7 +99,7 @@ const toggleMenu = () => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3rem;
+    gap: var(--space-6);
     z-index: 1000;
     opacity: 0;
     pointer-events: none;
