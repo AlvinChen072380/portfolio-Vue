@@ -11,14 +11,14 @@ const toggleMenu = () => {
 <template>
   <header class="app-header">
     <router-link to="/" class="logo" @click="isMenuOpen = false">
-      <span class="logo-icon">⁂</span>
-      <span class="logo-text">Expert Artisan</span>
+      <span class="logo-icon"></span>
+      <span class="logo-text">Alvin's Portfolio</span>
     </router-link>
     
     <nav class="nav-links" :class="{ 'is-open': isMenuOpen }">
       <router-link to="/about" @click="isMenuOpen = false">About</router-link>
       <router-link to="/skill" @click="isMenuOpen = false">Skill</router-link>
-      <router-link to="/work" @click="isMenuOpen = false">Work</router-link>
+      <router-link to="/work" @click="isMenuOpen = false">Projects</router-link>
     </nav>
     
     <!-- [Fix #8a] 移除重複的 inline z-index，scoped CSS 已有相同設定 -->
@@ -34,8 +34,9 @@ const toggleMenu = () => {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-4) 0;
-  /* [Shadow] 頁首輕微陰影，與內容區形成層次 */
-  filter: drop-shadow(0 2px 6px rgba(70, 50, 30, 0.06));
+  /* [Fix] 移除 filter: drop-shadow
+     filter 會讓 position:fixed 的子元素（.nav-links 手機選單）
+     以 .app-header 為定位基準，而非 viewport，導致選單無法全螢幕覆蓋 */
 }
 
 .logo {
@@ -45,6 +46,8 @@ const toggleMenu = () => {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--accent-color);
+   text-decoration: none;
+  cursor: pointer;
 }
 
 .nav-links {
@@ -106,6 +109,25 @@ const toggleMenu = () => {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+  }
+
+  /* 漢堡選單橢圓光暈：從中心向外拓散漸淡 */
+  .nav-links::before {
+    content: '';
+    position: absolute;
+    width: 65%;
+    height: 78%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    background: radial-gradient(ellipse at center,
+      rgba(210, 111, 50, 0.30) 0%,
+      rgba(181, 57, 38, 0.15) 45%,
+      transparent 70%
+    );
   }
   
   .nav-links.is-open {

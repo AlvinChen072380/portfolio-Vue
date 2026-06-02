@@ -11,7 +11,7 @@ const projects = ref([
   {
     // [Fix] 圖片路徑修正：public/ 資料夾內容在 Vite 中從根目錄存取，不含 /public 前綴
     id: 'hi-refrigerator',
-    image: '/images/works/Hi_refrigerator.png',
+    image: '/images/works/Hi_refrigerator.webp',
     title: 'Hi refrigerator!',
     tags: ['AI Search', 'Web App', 'Recipe', 'React'],
     demoUrl: 'https://hi-refrigerator.vercel.app/',
@@ -32,7 +32,7 @@ const projects = ref([
   {
     // [Fix] 圖片路徑修正
     id: 'mordor-gallery',
-    image: '/images/works/Mordor_Gallery.png',
+    image: '/images/works/Mordor_Gallery.webp',
     title: 'Online Gallery Shopping Cart',
     tags: ['Next.js', 'shopCart', 'TailwindCSS', 'fineArt'],
     demoUrl: 'https://photo-portfolio-nine-theta.vercel.app/',
@@ -54,7 +54,7 @@ const projects = ref([
   {
     // [Fix] id 改為 kebab-case，避免 URL 含空格；圖片路徑雙斜線修正；overview/architecture 對調
     id: 'personal-portfolio',
-    image: '/images/works/MyPortfolio.png',
+    image: '/images/works/MyPortfolio.webp',
     title: '莫藍迪色系個人網頁',
     tags: ['Next.js', 'TypeScript', 'Portfolio', 'TailwindCSS', 'Framer Motion'],
     demoUrl: 'https://portfolio-v1-dun-two.vercel.app/#Home',
@@ -71,6 +71,44 @@ const projects = ref([
     ],
     // [Part2] 重測後確認分數（根目錄 URL 無 #Home hash）
     performance: { score: 99, label: 'LIGHTHOUSE' }
+  },
+  {
+    id: 'book-collector',
+    // 截圖放入 public/images/works/ 後更新此路徑
+    image: '/images/works/BookCollector.webp',
+    title: 'Book Collector Hunter',
+    tags: ['Vue 3', 'Dashboard', 'CSS Grid', 'LocalStorage'],
+    demoUrl: 'https://alvinchen072380.github.io/BookCollectorHunter/',
+    githubUrl: 'https://github.com/AlvinChen072380/BookCollectorHunter',
+    role: 'Frontend Developer',
+    timeline: '1 Month (Q2 2026)',
+    overview: '以 Vue 3 Composition API 開發的書籍收藏管理儀表板。支援按分類（奇幻小說、台灣文學等）管理書本收藏、附上評分與備註，並透過 localStorage 實現資料持久化。特色是採用 clip-path 製作不規則折角資料夾造型卡片，具備網格 / 列表切換與新舊排序功能，提供流暢的收藏管理體驗。',
+    architecture: '選用技術：Vue 3 (Composition API) / Vue Router / CSS Grid / localStorage',
+    feeds: [
+      { time: '05/25', text: '建立 Vue 3 Composition API 基礎架構與 CSS Grid 儀表板佈局' },
+      { time: '05/26', text: '實作 localStorage 資料持久化，完成新增 / 刪除 / 分類邏輯' },
+      { time: '05/27', text: '使用 clip-path 製作資料夾折角卡片造型，完成評分滑桿元件' },
+      { time: '05/28', text: '完成 RWD 三段響應式斷點（1024 / 768 / 480px），部署至 GitHub Pages' }
+    ],
+    performance: { score: 86, label: 'LIGHTHOUSE' }
+  },
+  {
+    id: 'weather-practice',
+    image: '/images/works/Weather.webp',
+    title: 'Weather Practice App',
+    tags: ['JavaScript', 'OpenWeather API', 'Web App', 'RWD'],
+    demoUrl: 'https://alvinchen072380.github.io/WeatherPractice/',
+    githubUrl: 'https://github.com/AlvinChen072380/WeatherPractice',
+    role: 'Frontend Developer',
+    timeline: '1 Week (Q2 2026)',
+    overview: '以原生 JavaScript 開發的即時天氣查詢應用。串接 OpenWeatherMap API 取得全球城市的當前氣象資料，包含溫度、濕度、風速與天氣狀態圖示。採用響應式設計確保手機與桌機均有良好瀏覽體驗，並部署至 GitHub Pages 供線上存取。',
+    architecture: '選用技術：Vanilla JavaScript / OpenWeatherMap API / CSS3 / GitHub Pages',
+    feeds: [
+      { time: '05/28', text: '建立專案架構，完成 OpenWeatherMap API 串接與城市查詢功能' },
+      { time: '05/29', text: '實作天氣狀態動態圖示與溫度 / 濕度 / 風速資訊呈現' },
+      { time: '05/30', text: '完成 RWD 響應式佈局，部署至 GitHub Pages' }
+    ],
+    performance: { score: 94, label: 'LIGHTHOUSE' }
   }
 ])
 
@@ -84,9 +122,14 @@ const goToProjectDetail = (projectId) => {
   router.push(`/work/${projectId}`)
 }
 
+// [Fix B] 返回時將目前專案 ID 附加為 query，讓列表還原選取狀態
+// URL 例：/work?selected=book-collector
 const handleGoBack = () => {
-  router.push('/work')
+  router.push({ path: '/work', query: { selected: currentProject.value?.id } })
 }
+
+// [Fix B] 從 URL query 讀取應還原的專案 ID
+const initialProjectId = computed(() => route.query.selected || null)
 </script>
 
 <template>
@@ -99,6 +142,7 @@ const handleGoBack = () => {
     <WorksSection
       v-else
       :projects="projects"
+      :initialProjectId="initialProjectId"
       @navigate-to-detail="goToProjectDetail"
     />
   </div>

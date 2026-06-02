@@ -606,6 +606,337 @@ Step 7 的 `flex: 1` vs `width: 100%`：推薦 `flex: 1`，最後選 `width: 100
 
 ---
 
+## [2026-05-31] ✨ 優化：Skills 技能卡片 Logo 改為 FontAwesome Icon
+
+### 📁 異動檔案
+- `index.html` — 加入 FontAwesome 6.5.2 CDN
+- `src/views/SkillsView.vue` — `logo` 欄位改為 FA class；第二分類由 Backend & DevOps 改為 Design & Tools
+- `src/components/SkillCard.vue` — template 支援三種 logo 格式；CSS 調整 icon 尺寸
+
+### 🎯 實作內容
+
+**SkillCard.vue — 三種 logo 格式自動判斷：**
+```html
+<div class="skill-logo">
+  <!-- FontAwesome icon -->
+  <i v-if="skill.logo.startsWith('fa-')" :class="skill.logo"></i>
+  <!-- PNG 圖片（未來擴充用） -->
+  <img v-else-if="skill.logo.startsWith('/')" :src="skill.logo" :alt="skill.name" />
+  <!-- 文字 fallback（如 Ps、Ai） -->
+  <span v-else>{{ skill.logo }}</span>
+</div>
+```
+
+**技能分類調整：**
+
+| 分類 | 技能 | Logo |
+|------|------|------|
+| Frontend Development | Vue.js | `fa-brands fa-vuejs` |
+| | React | `fa-brands fa-react` |
+| | CSS/SASS | `fa-brands fa-css3-alt` |
+| | JavaScript | `fa-brands fa-js` |
+| | Git | `fa-brands fa-git-alt` |
+| Design & Tools | Figma | `fa-brands fa-figma` |
+| | Photoshop | `Ps`（文字暫代，待 PNG）|
+| | Illustrator | `Ai`（文字暫代，待 PNG）|
+
+**未來補上 PNG 的做法：**
+只需將 `logo: "Ps"` 改為 `logo: "/images/skills/ps.png"`，SkillCard 會自動切換為 `<img>` 渲染。
+
+### 📚 基礎知識：FontAwesome 使用方式
+
+**CDN 引入（本專案做法）：**
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+```
+
+**使用方式：**
+```html
+<!-- Brand icons（技術 logo） -->
+<i class="fa-brands fa-vuejs"></i>
+
+<!-- Solid icons（實心圖示） -->
+<i class="fa-solid fa-house"></i>
+
+<!-- Regular icons（線條圖示） -->
+<i class="fa-regular fa-heart"></i>
+```
+
+**FA 的三種引入方案比較：**
+
+| 方案 | 適用情境 | 優缺點 |
+|------|---------|-------|
+| CDN `<link>` | 少量使用，快速開發 | 簡單，但載入整包 CSS（~75KB）|
+| npm `@fortawesome/vue-fontawesome` | 需要 tree-shaking | 只引入用到的 icon，打包更小 |
+| SVG 直接嵌入 | 無外部依賴需求 | 完全自控，但維護成本高 |
+
+本專案 icon 數量少，CDN 是最直接的選擇。
+
+---
+
+## [2026-05-31] 🐛 Bug 修復：手機選單在 Skills/Works 頁面 z-index 層級異常
+
+### 📁 異動檔案
+- `src/components/NavBar.vue` — 移除 `.app-header` 的 `filter: drop-shadow`
+
+### ❓ 為什麼發生？
+
+`.app-header` 加了 `filter: drop-shadow(...)` 作為頁首陰影效果，但這觸發了一條 CSS 規範：
+
+> **當元素的 `filter` 屬性為非 `none` 值時，它的所有 `position: fixed` 後代元素，會以該元素（而非 viewport）作為定位基準。**
+
+```
+原本預期：
+  .nav-links { position: fixed } → 相對 viewport 全螢幕覆蓋 ✅
+
+加了 filter 之後：
+  .app-header { filter: drop-shadow(...) } → 成為新的 containing block
+  .nav-links { position: fixed } → 相對 .app-header 定位 ❌
+  → 選單無法覆蓋整個視窗，z-index 也被困在 .app-header 的 stacking context 內
+```
+
+**為什麼只有 Skills / Works 頁面明顯？**
+About 頁面內容較短，定位偏差不明顯。Skills / Works 有更高的 grid 元素，页面內容突出，視覺上才顯示出 overlay 無法遮蓋的問題。
+
+### 🎯 修正方式
+
+移除 `.app-header` 的 `filter` 屬性，還原 `position: fixed` 的 viewport 定位基準：
+
+```css
+/* 修改前（有問題） */
+.app-header {
+  filter: drop-shadow(0 2px 6px rgba(70, 50, 30, 0.06));
+}
+
+/* 修改後 */
+.app-header {
+  /* filter 已移除，避免破壞 .nav-links position:fixed 的定位基準 */
+}
+```
+
+### 📚 基礎知識：會破壞 `position: fixed` 的 CSS 屬性
+
+以下屬性一旦設定在 `position: fixed` 元素的**祖先**上，會讓該元素改以祖先為定位基準（而非 viewport）：
+
+| 屬性 | 觸發條件 |
+|------|---------|
+| `transform` | 值不為 `none` |
+| `filter` | 值不為 `none` |
+| `perspective` | 值不為 `none` |
+| `will-change` | 值為 `transform` 或 `filter` |
+| `contain` | 值包含 `layout` 或 `paint` |
+
+**最常見的陷阱**：在父容器加上動畫用的 `transform: translate(0)` 觸發 GPU 加速，導致子元素的 `position: fixed` 失效。解法是讓 fixed 元素不在有 `transform` 的容器內，或移到 `<body>` 的直接子元素。
+
+---
+
+## [2026-05-31] 💬 第三階段互動分析
+
+### 使用者的進步
+
+| 行為 | 改善內容 |
+|------|---------|
+| **問題描述更精確** | 「從 project 4 詳細頁點 Back 一律跳回選項 1」→ 明確說出觸發條件與結果 |
+| **確認內容更具體** | 「pagination 已移至第一順位」→ 說出觀察到的畫面變化 |
+| **數字直接提供** | 直接給 Lighthouse 86 分、截圖放好再告知 |
+| **要求分析再行動** | 版面調整前多次先詢問評估，降低來回成本 |
+
+### 使用者可以改善的地方
+
+**多專案操作時說明對象不夠清楚**
+
+部署情境說明不足，導致誤把 portfolio 推送至 BookHunter 倉庫。關鍵在於操作前補充：哪個本地專案 → 哪個倉庫。
+
+```
+❌ 「能請你協助進行 GitHub 的靜態部署嗎?」（未說明是哪個專案）
+✅ 「幫我把 D:\...\Vue-firstProject 部署到 BookCollectorHunter 倉庫」
+```
+
+### Claude 的進步
+
+- 部署誤操作後**主動偵測並立即還原**，未等使用者指出
+- 正確診斷出 URL Query 方案的根本原因（`:key="route.path"` 強制銷毀元件）
+- `order` 屬性建議精準符合「不動其他區塊」的需求
+
+### Claude 仍需改進的地方
+
+**1. 高風險操作前未確認對象**
+執行 `git push` 前應先確認：「確認要把目前這個 portfolio 推送到 BookHunter 嗎？」
+
+**2. 方案 A 設計前未考慮 `:key` 機制**
+`:key="route.path"` 是自己寫的，應在推薦方案 A 時就意識到會導致 WorksView 重建，不應等失敗才診斷。
+
+**3. pagination 位置需兩次才到位**
+「標題下方」與「最上方」的差異應在第一次討論時確認清楚。
+
+---
+
+## [2026-05-31] 🔧 版面優化：Skills/Works 分頁圓點在 ≤1024px 移至最上方
+
+### 📁 異動檔案
+- `src/components/WorksSection.vue` — `@media (max-width: 1024px)` 加入 CSS `order`；移除 `pagination` 的 `padding-bottom`
+- `src/components/SkillsSection.vue` — 同上
+
+### ❓ 為什麼需要優化？
+在 ≤1024px 的單欄佈局中，`.pagination`（輪播圓點）原本排在 side-cards 之後，位於畫面最底部，使用者需要向下滾動才看得到切換按鈕，造成操作上的不便。
+
+### 🎯 修正方式：CSS `order` 屬性
+
+不更動任何 template 或 JS，只加兩行 CSS：
+
+```css
+@media (max-width: 1024px) {
+  .pagination                  { order: 1; }  /* 移至第一 */
+  .project-card / .skills-wrapper { order: 2; }  /* 推至第二 */
+  .side-cards                  { order: 3; }  /* 推至第三 */
+}
+```
+
+**排列結果：**
+```
+≤1024px 版面（修改前）    ≤1024px 版面（修改後）
+1. project-card            1. pagination  ← 使用者一眼看到
+2. side-cards              2. project-card
+3. pagination ← 最底部    3. side-cards
+```
+
+### 📚 基礎知識：CSS `order` 屬性
+
+`order` 屬性可改變 Flex / Grid 子元素的**視覺顯示順序**，不影響 DOM 實際位置：
+- 預設值為 `0`，數字越小越靠前
+- 同樣的數字按 DOM 順序排列
+- 不影響 JS 邏輯、事件綁定或 Vue 響應式資料
+
+適合用於「RWD 需要重新排列元素順序但不想改動 template」的情境。
+
+---
+
+## [2026-05-31] ✨ 新增：BookCollector Hunter 作品集頁面與 GitHub Pages 部署
+
+### 📁 異動檔案
+- `src/views/WorksView.vue` — 新增 `book-collector` 專案資料
+- `public/images/works/BookCollector.png` — 專案截圖
+
+### 🎯 實作內容
+
+**BookCollector Hunter** 是一個以 Vue 3 Composition API 開發的書籍收藏管理儀表板，使用 `clip-path` 製作資料夾折角卡片造型，支援分類管理、評分、localStorage 持久化與 RWD。
+
+**部署流程：**
+1. 在 BookCollector 專案初始化 git（原無 git）
+2. 設定 `vite.config.js` 的 `base: '/BookCollectorHunter/'`
+3. 建立 `.github/workflows/deploy.yml`（GitHub Actions 自動部署）
+4. 推送至 `https://github.com/AlvinChen072380/BookCollectorHunter`
+5. GitHub Settings → Pages → Source 設為 `GitHub Actions`
+
+**部署網址：** `https://alvinchen072380.github.io/BookCollectorHunter/`
+
+**Lighthouse 分數：** 86
+
+### 📚 基礎知識：Vite 專案部署至 GitHub Pages 的必要設定
+
+```javascript
+// vite.config.js — base 必須設為倉庫名稱
+export default defineConfig({
+  base: '/BookCollectorHunter/', // 對應 GitHub 倉庫名稱
+})
+```
+
+**為什麼需要設定 `base`？**
+
+GitHub Pages 的網址格式為 `https://帳號.github.io/倉庫名稱/`，所有靜態資源（JS、CSS、圖片）的路徑會帶有 `/倉庫名稱/` 前綴。若不設定 `base`，Vite 預設路徑為 `/`，導致資源 404。
+
+**GitHub Actions `deploy.yml` 核心流程：**
+```yaml
+on:
+  push:
+    branches: [master]    # master push 觸發自動部署
+
+jobs:
+  build:
+    steps:
+      - npm ci             # 安裝依賴
+      - npm run build      # 打包
+      - 上傳 ./dist 至 Pages artifact
+
+  deploy:
+    uses: actions/deploy-pages@v4  # 部署至 GitHub Pages
+```
+
+---
+
+## [2026-05-31] 🐛 Bug 修復：返回 Works 列表時無法還原選取的專案狀態
+
+### 📁 異動檔案
+- `src/views/WorksView.vue` — `handleGoBack` 改為帶入 query；新增 `initialProjectId` computed 從 URL 讀取
+- `src/components/WorksSection.vue` — 新增 `initialProjectId` prop，初始化 `activeProjectIndex` 時從 prop 決定起始值
+
+### ❓ 為什麼發生？
+
+從 ProjectCardDetail 按「Back to Works」後，列表永遠回到第一個專案（hi-refrigerator）。
+
+**根本原因（兩層）：**
+
+**第一層：** `WorksSection` 的 `activeProjectIndex = ref(0)` 是元件內部狀態，每次掛載都重置為 0。
+
+**第二層（方案 A 失敗的原因）：** `App.vue` 使用 `:key="route.path"` 強制頁面切換時銷毀並重建元件。從 `/work/book-collector` 回到 `/work`，key 改變 → **整個 `WorksView` 被銷毀重建** → 任何存在 `WorksView` 的 ref 都重置為初始值 → 方案 A 的 `lastActiveProjectId` 根本沒有機會保留。
+
+### 🎯 修正方式（方案 B：URL Query String）
+
+把「目前選取的專案」存在 **URL** 而非元件記憶體，不受元件銷毀影響：
+
+```javascript
+// WorksView.vue — 返回時把專案 ID 寫入 query
+const handleGoBack = () => {
+  router.push({ path: '/work', query: { selected: currentProject.value?.id } })
+  // URL 變為：/work?selected=book-collector
+}
+
+// 從 URL query 讀取還原目標
+const initialProjectId = computed(() => route.query.selected || null)
+```
+
+```javascript
+// WorksSection.vue — 以 prop 決定初始 index
+const props = defineProps({
+  projects: { type: Array, required: true },
+  initialProjectId: { type: String, default: null }
+})
+
+const activeProjectIndex = ref(
+  props.initialProjectId
+    ? Math.max(0, props.projects.findIndex(p => p.id === props.initialProjectId))
+    : 0
+)
+```
+
+### 各情境行為
+
+| 操作 | URL | 初始顯示 |
+|------|-----|---------|
+| 點 NavBar「Work」 | `/work` | 第一個專案 |
+| 從 Book Collector 詳細頁返回 | `/work?selected=book-collector` | Book Collector ✅ |
+| 從 Eco Tracker 詳細頁返回 | `/work?selected=eco-tracker` | Eco Tracker ✅ |
+
+### 📚 基礎知識：為什麼 `:key="route.path"` 導致方案 A 失效？
+
+Vue 的 `key` 屬性告訴 Virtual DOM：「這兩個元素是否是同一個元件實例」。
+
+- **key 相同** → Vue 複用同一個元件實例，保留所有 ref 狀態
+- **key 不同** → Vue 銷毀舊實例並建立全新實例，所有 ref 重置
+
+本專案在 `App.vue` 中使用 `:key="route.path"` 的目的是確保每次路由切換都觸發 GSAP 進場動畫。這個設計正確，但副作用是**每次路由切換，整個頁面元件都是全新的**，無法依靠 ref 保存跨路由狀態。
+
+**結論：需要跨路由保留的狀態，必須存在以下其中一處：**
+
+| 儲存位置 | 適用情境 | 範例 |
+|---------|---------|------|
+| **URL（query / params）** | 淺層狀態，可書籤、可分享 | 選取的專案、篩選條件 |
+| **localStorage / sessionStorage** | 需要跨頁面持久化 | 收藏（useLikes）|
+| **Pinia / Composable 模組層** | 多元件共用的全域狀態 | useLikes 的 likedProjects |
+| **元件 ref（不跨路由）** | 只在當前頁面有效 | activeProjectIndex、isScrolled |
+
+---
+
 ## [2026-05-31] ✨ 新增：全站 Web Font — Albert Sans
 
 ### 📁 異動檔案

@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { gsap } from "gsap";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+
+gsap.registerPlugin(ScrambleTextPlugin);
 import { useLikes } from "../composables/useLikes.js";
 
 const props = defineProps({
@@ -8,11 +11,24 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  // [Fix] 從詳細頁返回時，還原最後選取的專案
+  initialProjectId: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["navigate-to-detail"]);
 
-const activeProjectIndex = ref(0);
+// 若有 initialProjectId，找到對應 index；否則預設第一個
+const activeProjectIndex = ref(
+  props.initialProjectId
+    ? Math.max(
+        0,
+        props.projects.findIndex((p) => p.id === props.initialProjectId),
+      )
+    : 0,
+);
 const activeProject = computed(() => props.projects[activeProjectIndex.value]);
 
 const { isLiked, toggleLike: globalToggleLike } = useLikes();
@@ -41,15 +57,26 @@ onMounted(async () => {
 
   gsapCtx = gsap.context(() => {
     // 標題 x 方向不與頁面 y 過渡衝突，保留
-    gsap.from(titleRef.value, {
-      opacity: 0, x: -20, duration: 0.45,
-      ease: "power2.out", clearProps: "all"
+    gsap.set(titleRef.value, { autoAlpha: 0 });
+    gsap.to(titleRef.value, {
+      duration: 1.2,
+      scrambleText: {
+        text: titleRef.value.textContent.trim(),
+        chars: "upperCase",
+        revealDelay: 0.3,
+        speed: 0.4,
+      },
+      ease: "none",
+      onStart: () => gsap.set(titleRef.value, { autoAlpha: 1 }),
     });
     // [Fix] 移除 y 移動 — 頁面切換已提供 y:15 移動感
     // 保留 y 會與頁面過渡疊加，造成卡片可見的「彈跳」
     gsap.from(cardRef.value, {
-      opacity: 0, duration: 0.4, delay: 0.15,
-      ease: "power2.out", clearProps: "all"
+      opacity: 0,
+      duration: 0.4,
+      delay: 0.15,
+      ease: "power2.out",
+      clearProps: "all",
     });
   });
 });
@@ -127,10 +154,20 @@ onUnmounted(() => gsapCtx?.revert());
         </div>
 
         <!-- 效能分數卡片 [Part2] 動態顯示各專案 Lighthouse 分數，null 時顯示錯誤狀態 -->
-        <div class="performance-card" :class="{ 'is-error': !activeProject.performance.score }">
-          <div class="score-icon">{{ activeProject.performance.score ? 'Score' : '⚠️' }}</div>
-          <div class="score-value">{{ activeProject.performance.score ?? '—' }}</div>
-          <div class="score-label">{{ activeProject.performance.label }}</div>
+        <div
+          class="performance-card"
+          :class="{ 'is-error': !activeProject.performance.score }"
+        >
+          <div class="perf-glow-bg"></div>
+          <div class="perf-glass">
+            <div class="score-icon">
+              {{ activeProject.performance.score ? "Score" : "⚠️" }}
+            </div>
+            <div class="score-value">
+              {{ activeProject.performance.score ?? "—" }}
+            </div>
+            <div class="score-label">{{ activeProject.performance.label }}</div>
+          </div>
         </div>
       </div>
 
@@ -151,14 +188,16 @@ onUnmounted(() => gsapCtx?.revert());
 <style scoped>
 .section-title {
   font-size: 2.5rem;
-  font-weight: 500;
-  margin-bottom: var(--space-4); /* [Layout] 48px → 32px，縮減標題與版面的間距 */
+  font-weight: 600;
+  margin-bottom: var(
+    --space-4
+  ); /* [Layout] 48px → 32px，縮減標題與版面的間距 */
 }
 
 /* [Fix #4] 滾動條隱藏改為精確選擇器，避免 * 影響所有子元素 */
 .feed-list {
   overflow-y: auto;
-  max-height: 150px;
+  max-height: 200px;
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
@@ -186,7 +225,9 @@ onUnmounted(() => gsapCtx?.revert());
   flex-direction: column;
   /* [Shadow] 中層陰影，卡片從背景浮起 */
   box-shadow: var(--shadow-md);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 .project-card:hover {
   /* [Shadow] hover 時提升至高層陰影 + 微上移 */
@@ -336,7 +377,9 @@ onUnmounted(() => gsapCtx?.revert());
 }
 /* [Shadow] 白色卡片用暖色 inner glow */
 .system-feed-card:hover {
-  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(181, 58, 38, 0.06);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 20px rgba(181, 58, 38, 0.06);
 }
 
 .feed-header {
@@ -378,17 +421,58 @@ onUnmounted(() => gsapCtx?.revert());
 .performance-card {
   background-color: var(--accent-color);
   border-radius: 1.5rem;
-  padding: var(--space-4);
+  padding: 0; /* 間距改由 .perf-glass inset 控制 */
   color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* [Part2] */
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease; /* [Part2] */
+}
+
+.perf-glow-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 25% 75%,
+      rgba(255, 150, 50, 0.6) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 75% 25%,
+      rgba(100, 10, 5, 0.55) 0%,
+      transparent 55%
+    );
+  filter: blur(24px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.perf-glass {
+  position: absolute;
+  inset: 12px; /* 同心圓：外框 1.5rem(24px) - 12px = 12px 玻璃圓角，四邊視覺一致 */
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 17px;
+  padding: var(--space-2);
 }
 /* [Shadow] 深色卡片用白色 inner glow */
 .performance-card:hover {
-  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(255, 255, 255, 0.12);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 20px rgba(255, 255, 255, 0.12);
 }
 /* [Part2] 分數為 null（如 NO_LCP）時顯示灰色警告狀態 */
 .performance-card.is-error {
@@ -452,13 +536,21 @@ onUnmounted(() => gsapCtx?.revert());
     grid-template-columns: 1fr;
     min-height: auto; /* [Fix #7] 移除固定最小高度，讓手機版內容決定高度 */
   }
+  /* [Layout] pagination 移至最上方，project-card 退為第二 */
+  .pagination {
+    order: 1;
+  }
+  .project-card {
+    order: 2;
+  }
   .side-cards {
     flex-direction: row;
+    order: 3;
   }
   .pagination {
     flex-direction: row;
     padding-left: 0;
-    padding-bottom: var(--space-3);
+    /* padding-bottom: var(--space-3); */
   }
 }
 
@@ -467,7 +559,7 @@ onUnmounted(() => gsapCtx?.revert());
     flex-direction: column;
   }
   .side-cards > div {
-    flex: none; /* 關鍵：取消均分，讓高度由內容決定 */
+    flex: 1 1 180px;
     height: auto;
   }
   /* [Fix #7] padding 縮減，手機版卡片更緊湊 */
@@ -483,9 +575,6 @@ onUnmounted(() => gsapCtx?.revert());
   .project-actions .btn {
     flex: 1;
     text-align: center;
-  }
-  .pagination {
-    padding-bottom: var(--space-3);
   }
 }
 </style>

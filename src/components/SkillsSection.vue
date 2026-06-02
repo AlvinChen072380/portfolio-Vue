@@ -1,96 +1,115 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { gsap } from 'gsap'
-import SkillCard from './SkillCard.vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
+import { gsap } from "gsap";
+import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
+
+gsap.registerPlugin(ScrambleTextPlugin);
+import SkillCard from "./SkillCard.vue";
 
 const props = defineProps({
   categories: {
     type: Array,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const activeCategoryIndex = ref(0)
-const currentCategory = computed(() => props.categories[activeCategoryIndex.value])
+const activeCategoryIndex = ref(0);
+const currentCategory = computed(
+  () => props.categories[activeCategoryIndex.value],
+);
 
-const activeSkill = ref(currentCategory.value.skills[0])
+const activeSkill = ref(currentCategory.value.skills[0]);
 
 watch(activeCategoryIndex, () => {
-  activeSkill.value = currentCategory.value.skills[0]
-})
+  activeSkill.value = currentCategory.value.skills[0];
+});
 
 const selectSkill = (skill) => {
-  activeSkill.value = skill
-}
+  activeSkill.value = skill;
+};
 
 // [Feat] 偵測 skills-container 是否已滾動，控制 scroll-hint 的顯示
-const isScrolled = ref(false)
+const isScrolled = ref(false);
 const handleScroll = (e) => {
-  isScrolled.value = e.target.scrollTop > 0
-}
+  isScrolled.value = e.target.scrollTop > 0;
+};
 
 // [GSAP Step I] template refs — 標題與技能卡片容器
-const titleRef = ref(null)
-const skillListRef = ref(null)
+const titleRef = ref(null);
+const skillListRef = ref(null);
 
 // [GSAP Fix] gsap.context() 追蹤所有動畫，onUnmounted 時統一清除
-let gsapCtx = null
+let gsapCtx = null;
 
 onMounted(async () => {
   // [GSAP Fix] nextTick 避免與頁面切換 opacity 動畫疊加造成半透明效果
-  await nextTick()
+  await nextTick();
 
   gsapCtx = gsap.context(() => {
-    gsap.from(titleRef.value, {
-      opacity: 0, x: -20, duration: 0.45,
-      ease: 'power2.out', clearProps: 'all'
-    })
+    gsap.set(titleRef.value, { autoAlpha: 0 });
+    gsap.to(titleRef.value, {
+      duration: 1.2,
+      scrambleText: {
+        text: titleRef.value.textContent.trim(),
+        chars: "upperCase",
+        revealDelay: 0.3,
+        speed: 0.4,
+      },
+      ease: "none",
+      onStart: () => gsap.set(titleRef.value, { autoAlpha: 1 }),
+    });
     gsap.from(skillListRef.value.children, {
-      opacity: 0, y: 10, duration: 0.35,
-      stagger: 0.06, delay: 0.1,
-      ease: 'power2.out', clearProps: 'all'
-    })
-  })
-})
+      opacity: 0,
+      y: 10,
+      duration: 0.35,
+      stagger: 0.06,
+      delay: 0.1,
+      ease: "power2.out",
+      clearProps: "all",
+    });
+  });
+});
 
 // [GSAP Fix] 元件卸載時清除所有 tween 與 inline style
-onUnmounted(() => gsapCtx?.revert())
+onUnmounted(() => gsapCtx?.revert());
 
 const targetSize = computed(() => {
-  return 40 + (activeSkill.value.rating * 12) + 'px'
-})
+  return 40 + activeSkill.value.rating * 12 + "px";
+});
 
 const targetColor = computed(() => {
   const colors = {
-    1: '#ff6b6b',
-    2: '#fca311',
-    3: '#ffd166',
-    4: '#06d6a0',
-    5: '#118ab2'
-  }
-  return colors[activeSkill.value.rating] || '#ccc'
-})
+    1: "#ff6b6b",
+    2: "#fca311",
+    3: "#ffd166",
+    4: "#06d6a0",
+    5: "#118ab2",
+  };
+  return colors[activeSkill.value.rating] || "#ccc";
+});
 </script>
 
 <template>
   <section class="works-section">
     <h2 class="section-title" ref="titleRef">Skills & Expertise</h2>
-    
+
     <div class="works-layout">
       <!-- 左側：技能列表 -->
       <div class="project-card skills-wrapper">
         <div class="skills-container" @scroll="handleScroll">
           <div class="skills-list" ref="skillListRef">
             <SkillCard
-              v-for="skill in currentCategory.skills" 
-              :key="skill.id" 
+              v-for="skill in currentCategory.skills"
+              :key="skill.id"
               :skill="skill"
               :isActive="activeSkill.id === skill.id"
               @click="selectSkill(skill)"
             />
-          </div> <!-- /skills-list -->
-      </div> <!-- /skills-container -->
-        
+          </div>
+          <!-- /skills-list -->
+        </div>
+        <!-- /skills-container -->
+
         <!-- 向下滑動提示 -->
         <!-- [Feat] is-hidden class 在使用者滾動後淡出提示 -->
         <div class="scroll-hint" :class="{ 'is-hidden': isScrolled }">
@@ -123,23 +142,34 @@ const targetColor = computed(() => {
 
         <!-- 效能分數卡片 (原型/標靶) -->
         <div class="performance-card">
-          <div class="target-container">
-            <div class="target-circle" :style="{ width: targetSize, height: targetSize, backgroundColor: targetColor, boxShadow: `0 0 20px ${targetColor}80` }"></div>
-            <div class="target-ring ring-1"></div>
-            <div class="target-ring ring-2"></div>
-            <div class="target-ring ring-3"></div>
+          <div class="perf-glow-bg"></div>
+          <div class="perf-glass">
+            <div class="target-container">
+              <div
+                class="target-circle"
+                :style="{
+                  width: targetSize,
+                  height: targetSize,
+                  backgroundColor: targetColor,
+                  boxShadow: `0 0 20px ${targetColor}80`,
+                }"
+              ></div>
+              <div class="target-ring ring-1"></div>
+              <div class="target-ring ring-2"></div>
+              <div class="target-ring ring-3"></div>
+            </div>
+            <div class="score-value">{{ activeSkill.rating }}/5</div>
+            <div class="score-label">PROFICIENCY LEVEL</div>
           </div>
-          <div class="score-value">{{ activeSkill.rating }}/5</div>
-          <div class="score-label">PROFICIENCY LEVEL</div>
         </div>
       </div>
 
       <!-- 右側邊緣的輪播圓點 -->
       <div class="pagination">
-        <span 
-          v-for="(cat, index) in categories" 
+        <span
+          v-for="(cat, index) in categories"
           :key="cat.id"
-          class="dot" 
+          class="dot"
           :class="{ active: activeCategoryIndex === index }"
           @click="activeCategoryIndex = index"
         ></span>
@@ -155,17 +185,19 @@ const targetColor = computed(() => {
 }
 .section-title {
   font-size: 2.5rem;
-  font-weight: 500;
-  margin-bottom: var(--space-4); /* [Layout] 48px → 32px，與 WorksSection 一致 */
+  font-weight: 600;
+  margin-bottom: var(
+    --space-4
+  ); /* [Layout] 48px → 32px，與 WorksSection 一致 */
 }
 .works-layout {
   display: grid;
   grid-template-columns: 7fr 3fr auto;
   gap: var(--space-4);
   align-items: stretch;
-  /* [Layout] clamp：最小 380px，視口 55%，上限 480px — 與 WorksSection 一致 */
-  min-height: clamp(380px, 55dvh, 480px);
-  margin-bottom: var(--space-4);
+  /* [Layout] 最小高度調升：確保 side-cards 有足夠空間放置 240px 效能卡 + gap + 系統卡 */
+  min-height: clamp(480px, 65dvh, 580px);
+  /* margin-bottom: var(--space-4); */
 }
 
 /* 左側：技能容器 Wrapper */
@@ -179,16 +211,16 @@ const targetColor = computed(() => {
   transition: box-shadow 0.3s ease;
   flex-direction: column;
   position: relative;
-      max-height: 650px;
-    height: 100%;
+  max-height: 650px;
+  height: 100%;
 }
 
 .skills-container {
   flex: 1;
   padding: var(--space-3);
   overflow-y: auto; /* 允許向下捲動 */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
   min-height: 0;
 }
 
@@ -222,7 +254,11 @@ const targetColor = computed(() => {
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {
@@ -252,11 +288,8 @@ const targetColor = computed(() => {
   gap: var(--space-4);
 }
 .side-cards > div {
-  flex: 1 1 0; /* 關鍵：讓兩個子元素強迫平分剩餘空間 */
-  min-height: 0; /* 關鍵：打破 Flexbox 預設以內容高度為底線的限制 */
-  
-  /* 如果內容真的太多超過卡片高度，就讓卡片內部自己產生捲軸 */
-  overflow-y: auto; 
+  overflow-y: auto; /* flex 行為由各卡片自行定義 */
+  flex: 1 1 0;
 }
 
 /* 系統狀態卡片 */
@@ -264,13 +297,13 @@ const targetColor = computed(() => {
   background: var(--card-bg);
   border-radius: 1.5rem;
   padding: var(--space-4);
-  flex: 1;
+  /* flex: 1 1 0 */ /* 填滿效能卡之外的剩餘空間 */
+  min-height: 0;
   /* [Shadow] 右側資訊卡 */
   box-shadow: var(--shadow-md);
   transition: box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
-  min-height: 0;
 }
 .feed-header {
   display: flex;
@@ -287,8 +320,9 @@ const targetColor = computed(() => {
   flex: 1;
   overflow-y: auto;
   padding-right: var(--space-1);
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  max-height: 200px;
 }
 .red-dot {
   width: 8px;
@@ -316,13 +350,14 @@ const targetColor = computed(() => {
 .performance-card {
   background-color: #212529; /* 深色背景更能凸顯發光 */
   border-radius: 1.5rem;
-  padding: var(--space-4);
+  padding: 0; /* 間距改由 .perf-glass inset 控制 */
   color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  flex: 0 0 285px; /* 固定高度：target-ring 120px + score + label + padding */
+  min-height: 285px; /* [RWD Fix] 防止平板(左右排列)模式下，垂直高度崩塌 */
   position: relative;
   overflow: hidden;
 }
@@ -338,11 +373,20 @@ const targetColor = computed(() => {
 .target-ring {
   position: absolute;
   border-radius: 50%;
-  border: 1px dashed rgba(255,255,255,0.2);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
 }
-.ring-1 { width: 120px; height: 120px; }
-.ring-2 { width: 80px; height: 80px; }
-.ring-3 { width: 40px; height: 40px; }
+.ring-1 {
+  width: 120px;
+  height: 120px;
+}
+.ring-2 {
+  width: 80px;
+  height: 80px;
+}
+.ring-3 {
+  width: 40px;
+  height: 40px;
+}
 
 .target-circle {
   position: absolute;
@@ -358,13 +402,19 @@ const targetColor = computed(() => {
 }
 /* [Shadow] Hover inner glow — 純顯示卡片不位移，只有光暈提示 */
 .project-card.skills-wrapper:hover {
-  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(181, 58, 38, 0.06);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 20px rgba(181, 58, 38, 0.06);
 }
 .system-feed-card:hover {
-  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(181, 58, 38, 0.06);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 20px rgba(181, 58, 38, 0.06);
 }
 .performance-card:hover {
-  box-shadow: var(--shadow-lg), inset 0 0 20px rgba(255, 255, 255, 0.12);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 0 20px rgba(255, 255, 255, 0.12);
 }
 
 .score-label {
@@ -372,6 +422,41 @@ const targetColor = computed(() => {
   letter-spacing: 0.1em;
   opacity: 0.9;
   z-index: 2;
+}
+
+.perf-glow-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 30% 70%,
+      rgba(56, 100, 200, 0.55) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 70% 30%,
+      rgba(181, 57, 38, 0.5) 0%,
+      transparent 55%
+    );
+  filter: blur(24px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.perf-glass {
+  position: absolute;
+  inset: 12px; /* 同心圓：外框 1.5rem(24px) - 12px = 12px 玻璃圓角，四邊視覺一致 */
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 17px;
+  padding: var(--space-2);
 }
 
 /* 輪播圓點 */
@@ -395,7 +480,7 @@ const targetColor = computed(() => {
 
 /* 利用偽元素擴大點擊範圍 (Touch Target) */
 .pagination .dot::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -10px;
   right: -10px;
@@ -418,15 +503,23 @@ const targetColor = computed(() => {
     max-height: none;
   }
   .project-card.skills-wrapper {
-    max-height: 400px; /* Allow scroll on tablet/mobile but not take infinite height */
+    max-height: 400px;
+  }
+  /* [Layout] pagination 移至最上方，cards-wrapper 退為第二 */
+  .pagination {
+    order: 1;
+  }
+  .project-card.skills-wrapper {
+    order: 2;
   }
   .side-cards {
+    order: 3;
     flex-direction: row;
   }
   .pagination {
     flex-direction: row;
     padding-left: 0;
-    padding-bottom: var(--space-3);
+    /* padding-bottom: var(--space-3); */
   }
 }
 
@@ -434,16 +527,24 @@ const targetColor = computed(() => {
   .side-cards {
     flex-direction: column;
   }
-  /* [Fix #8d] 修正縮排，屬性對齊選擇器層級 */
   .side-cards > div {
-    flex: 1;
+    /* [RWD Fix] 取消自動壓縮，以 min-height 確保空間 */
+    flex: none;
+    min-height: 220px;
     overflow-y: auto;
+  }
+  /* [RWD Fix] 手機版明確給定高度，並利用 scale 微縮標靶圖 */
+  .performance-card {
+    flex: none;
+    height: 260px;
+    min-height: 260px;
+  }
+  .target-container {
+    transform: scale(0.85);
+    margin-bottom: 0;
   }
   .project-card.skills-wrapper {
     max-height: 350px;
-  }
-  .pagination {
-    padding-bottom: var(--space-3);
   }
 }
 </style>

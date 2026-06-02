@@ -13,7 +13,12 @@ defineProps({
 
 <template>
   <div class="skill-card" :class="{ active: isActive }">
-    <div class="skill-logo">{{ skill.logo }}</div>
+    <!-- [Logo] FA icon / PNG 圖片 / 文字 fallback 三種格式自動判斷 -->
+    <div class="skill-logo">
+      <i v-if="skill.logo.startsWith('fa-')" :class="skill.logo"></i>
+      <img v-else-if="skill.logo.startsWith('/')" :src="skill.logo" :alt="skill.name" />
+      <span v-else>{{ skill.logo }}</span>
+    </div>
     <div class="skill-info">
       <h3 class="skill-name">{{ skill.name }}</h3>
       <div class="skill-stars">
@@ -60,9 +65,16 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  font-weight: bold;
+  flex-shrink: 0;
+  /* [Logo] FA icon 大小 */
+  font-size: 1.8rem;
   color: #495057;
+}
+/* [Logo] PNG 圖片置中填滿圓形容器 */
+.skill-logo img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
 }
 .skill-info {
   flex: 1;

@@ -6,8 +6,8 @@ import ProfileCard from '../components/ProfileCard.vue'
 const profileData = ref({
   name: 'Alvin Chen',
   title: 'Developer',
-  avatar: '/avatar-acupy.jpg',
-  bio: '設計師出身、曾任咖啡師，現為前端開發者。我相信好的程式碼如同一杯精品咖啡——需要嚴謹的配方、層層疊加的細節，以及對使用者的極致追求。這段跨領域旅程讓我能同時用設計師的眼睛與工程師的邏輯開發產品，並持續深耕 TypeScript 與 Next.js 進階應用。',
+  avatar: '/images/works/portfolioPhoto.jpg',
+  bio: '設計師出身、曾任咖啡師，現為前端開發者。我相信好的程式碼如同一杯精品咖啡——需要嚴謹的配方、層層疊加的細節，以及對使用者的極致追求。這段跨領域旅程讓我能同時用設計師的眼睛與工程師的邏輯開發產品，並持續深耕 JavaScript 與 Vue 3 進階應用。',
   links: [
     { platform: 'GitHub', url: 'https://github.com/AlvinChen072380' },
     { platform: '104', url: 'https://pda.104.com.tw/profile/edit?vno=74rk3wa0w' },

@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { gsap } from 'gsap'
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin'
+
+gsap.registerPlugin(ScrambleTextPlugin)
 
 defineProps({
   profile: {
@@ -12,7 +15,8 @@ defineProps({
 // [GSAP Step J] template refs — 右側各內容區塊依序進場
 const imageRef = ref(null)
 const tagRef = ref(null)
-const headlineRef = ref(null)
+const helloRef = ref(null)
+const highlightRef = ref(null)
 const bioRef = ref(null)
 const btnsRef = ref(null)
 
@@ -25,12 +29,27 @@ onMounted(async () => {
   await nextTick()
 
   gsapCtx = gsap.context(() => {
+    // 立刻隱藏，避免 Vue 渲染完整文字後才開始動畫的閃爍
+    gsap.set(highlightRef.value, { autoAlpha: 0 })
+
     const tl = gsap.timeline({ defaults: { ease: 'power2.out', clearProps: 'all' } })
 
-    tl.from(imageRef.value,    { opacity: 0, x: -20, duration: 0.5 })
-      .from(tagRef.value,      { opacity: 0, y: 10,  duration: 0.3 }, '-=0.15')
-      .from(headlineRef.value, { opacity: 0, x: -15, duration: 0.4 }, '-=0.15')
-      .from(bioRef.value,      { opacity: 0, y: 10,  duration: 0.35 }, '-=0.1')
+    tl.from(imageRef.value,  { opacity: 0, x: -20, duration: 0.5 })
+      .from(tagRef.value,    { opacity: 0, y: 10,  duration: 0.3 }, '-=0.15')
+      .from(helloRef.value,  { opacity: 0, x: -15, duration: 0.4 }, '-=0.15')
+      .to(highlightRef.value, {
+        duration: 1.2,
+        scrambleText: {
+          text: highlightRef.value.textContent.trim(),
+          chars: 'upperCase',
+          revealDelay: 0.3,
+          speed: 0.4,
+        },
+        ease: 'none',
+        // ScrambleText 開始的瞬間才解除隱藏，避免完整文字閃現
+        onStart: () => gsap.set(highlightRef.value, { autoAlpha: 1 }),
+      }, '-=0.1')
+      .from(bioRef.value,    { opacity: 0, y: 10,  duration: 0.35 }, '-=0.5')
       .from(btnsRef.value.children, {
         opacity: 0, y: 8, duration: 0.3, stagger: 0.08
       }, '-=0.1')
@@ -47,15 +66,15 @@ onUnmounted(() => gsapCtx?.revert())
     <div class="profile-image-wrapper" ref="imageRef">
       <img v-if="profile.avatar" :src="profile.avatar" :alt="profile.name" />
       <div v-else class="placeholder-image">Hero Image Area</div>
+      <div class="tag-pill on-photo" ref="tagRef">{{ profile.title }}</div>
     </div>
 
     <!-- 右側文案區塊 -->
     <div class="profile-content">
-      <div class="tag-pill" ref="tagRef">{{ profile.title }}</div>
 
-      <h1 class="headline" ref="headlineRef">
-        Hello! I'm<br/>
-        <span class="highlight">{{ profile.name }}</span>
+      <h1 class="headline">
+        <span ref="helloRef">Hello! I'm</span><br/>
+        <span class="highlight" ref="highlightRef">{{ profile.name }}</span>
       </h1>
 
       <!-- 單欄大段落顯示 bio -->
@@ -103,6 +122,7 @@ onUnmounted(() => gsapCtx?.revert())
   font-size: 1.5rem;
   font-weight: bold;
   overflow: hidden;
+  position: relative;
   /* [Shadow] 主視覺圖片使用高層陰影，Token 取代硬編碼 */
   box-shadow: var(--shadow-lg);
 }
@@ -128,6 +148,18 @@ onUnmounted(() => gsapCtx?.revert())
   font-weight: 500;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
   color: var(--accent-color);
+}
+
+.tag-pill.on-photo {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
 }
 
 .headline {

@@ -30,6 +30,7 @@ const onLeave = (el, done) => {
 
 <template>
   <div class="app-container">
+    <div class="viewport-glow" aria-hidden="true"></div>
     <NavBar />
     <main class="main-content">
       <!-- [GSAP Step G] :key="route.path" 讓 Vue 每次切換路由都視為新元件，確保動畫觸發 -->
@@ -45,7 +46,8 @@ const onLeave = (el, done) => {
 <style>
 /* 全域 CSS 變數定義 */
 :root {
-  --bg-primary: #EBE4DB;
+   /* --bg-primary: #EBE4DB; */
+  --bg-primary: #f5f4f4;
   --text-primary: #333333;
   --text-muted: #666666;
   --accent-color: #B53A26;
@@ -56,6 +58,16 @@ const onLeave = (el, done) => {
   --shadow-sm: 0 2px 8px rgba(70, 50, 30, 0.07);
   --shadow-md: 0 4px 16px rgba(70, 50, 30, 0.10);
   --shadow-lg: 0 12px 32px rgba(70, 50, 30, 0.13);
+
+  /* Viewport Inner Glow — 暖色邊框光暈，四邊向內漸層 */
+  --glow-color-1: rgba(210, 111, 50, 0.24);
+  --glow-color-2: rgba(181, 57, 38, 0.253);
+  --glow-spread-1: 80px;
+  --glow-spread-2: 180px;
+  --glow-line-color: rgba(255, 200, 140, 0.55);
+  --glow-line-bloom: rgba(240, 150, 80, 0.30);
+  --glow-line-width: 2px;
+  --glow-line-bloom-spread: 22px;
 
   /* 8px Spacing System (1rem = 16px) */
   --space-0-5: 0.25rem;  /* 4px */
@@ -72,7 +84,6 @@ const onLeave = (el, done) => {
 }
 
 body {
-  
   margin: 0;
   padding: 0;
   background-color: var(--bg-primary);
@@ -80,6 +91,18 @@ body {
   /* [Font] Albert Sans 取代 Helvetica Neue，確保跨平台字體一致 */
   font-family: 'Albert Sans', 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.viewport-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 900;
+  box-shadow:
+    inset 0 0 0 var(--glow-line-width) var(--glow-line-color),
+    inset 0 0 var(--glow-line-bloom-spread) 0 var(--glow-line-bloom),
+    inset 0 0 var(--glow-spread-1) var(--glow-color-1),
+    inset 0 0 var(--glow-spread-2) var(--glow-color-2);
 }
 
 .app-container {
@@ -99,6 +122,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --glow-spread-1: 50px;
+    --glow-spread-2: 130px;
+  }
   .app-container {
     padding: 0 var(--space-3);
   }
