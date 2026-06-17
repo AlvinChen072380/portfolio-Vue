@@ -549,6 +549,9 @@ const targetColor = computed(() => {
 }
 
 @media (max-width: 768px) {
+  .section-title {
+    font-size: 1.5rem;
+  }
   .side-cards {
     flex-direction: column;
   }
