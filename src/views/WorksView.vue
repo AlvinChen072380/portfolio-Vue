@@ -7,11 +7,12 @@ import ProjectCardDetail from '../components/ProjectCardDetail.vue'
 const route = useRoute()
 const router = useRouter()
 
+const base = import.meta.env.BASE_URL
+
 const projects = ref([
   {
-    // [Fix] 圖片路徑修正：public/ 資料夾內容在 Vite 中從根目錄存取，不含 /public 前綴
     id: 'hi-refrigerator',
-    image: '/images/works/Hi_refrigerator.webp',
+    image: `${base}images/works/Hi_refrigerator.webp`,
     title: 'Hi refrigerator!',
     tags: ['AI Search', 'Web App', 'Recipe', 'React'],
     demoUrl: 'https://hi-refrigerator.vercel.app/',
@@ -30,9 +31,8 @@ const projects = ref([
     performance: { score: 98, label: 'LIGHTHOUSE' }
   },
   {
-    // [Fix] 圖片路徑修正
     id: 'mordor-gallery',
-    image: '/images/works/Mordor_Gallery.webp',
+    image: `${base}images/works/Mordor_Gallery.webp`,
     title: 'Online Gallery Shopping Cart',
     tags: ['Next.js', 'shopCart', 'TailwindCSS', 'fineArt'],
     demoUrl: 'https://photo-portfolio-nine-theta.vercel.app/',
@@ -52,9 +52,8 @@ const projects = ref([
     performance: { score: 98, label: 'LIGHTHOUSE' }
   },
   {
-    // [Fix] id 改為 kebab-case，避免 URL 含空格；圖片路徑雙斜線修正；overview/architecture 對調
     id: 'personal-portfolio',
-    image: '/images/works/MyPortfolio.webp',
+    image: `${base}images/works/MyPortfolio.webp`,
     title: '莫藍迪色系個人網頁',
     tags: ['Next.js', 'TypeScript', 'Portfolio', 'TailwindCSS', 'Framer Motion'],
     demoUrl: 'https://portfolio-v1-dun-two.vercel.app/#Home',
@@ -74,8 +73,7 @@ const projects = ref([
   },
   {
     id: 'book-collector',
-    // 截圖放入 public/images/works/ 後更新此路徑
-    image: '/images/works/BookCollector.webp',
+    image: `${base}images/works/BookCollector.webp`,
     title: 'Book Collector Hunter',
     tags: ['Vue 3', 'Dashboard', 'CSS Grid', 'LocalStorage'],
     demoUrl: 'https://alvinchen072380.github.io/BookCollectorHunter/',
@@ -94,7 +92,7 @@ const projects = ref([
   },
   {
     id: 'weather-practice',
-    image: '/images/works/Weather.webp',
+    image: `${base}images/works/Weather.webp`,
     title: 'Weather Practice App',
     tags: ['JavaScript', 'OpenWeather API', 'Web App', 'RWD'],
     demoUrl: 'https://alvinchen072380.github.io/WeatherPractice/',
