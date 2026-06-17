@@ -75,7 +75,7 @@ const onLeave = (el, done) => {
   --glow-spread-2: 180px;
   --glow-line-color: rgba(255, 200, 140, 0.55);
   --glow-line-bloom: rgba(240, 150, 80, 0.30);
-  --glow-line-width: 2px;
+  --glow-line-width: 1px;
   --glow-line-bloom-spread: 22px;
 
   /* 8px Spacing System (1rem = 16px) */
@@ -148,10 +148,10 @@ body {
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
-    --glow-color-1: rgba(80, 120, 200, 0.18);
-    --glow-color-2: rgba(181, 57, 38, 0.15);
-    --glow-line-color: rgba(120, 155, 230, 0.3);
-    --glow-line-bloom: rgba(80, 120, 200, 0.15);
+   --glow-color-1: rgba(210, 111, 50, 0.24);
+  --glow-color-2: rgba(181, 57, 38, 0.253);
+   --glow-line-color: rgba(255, 200, 140, 0.55);
+  --glow-line-bloom: rgba(240, 150, 80, 0.30);
   }
 }
 
