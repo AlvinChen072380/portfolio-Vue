@@ -136,7 +136,7 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
 
 .hero-section {
   margin-bottom: var(--space-6);
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: var(--space-4);
 }
 
@@ -156,7 +156,7 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
   background: none;
   border: none;
   font-size: 2.5rem;
-  color: #ccc;
+  color: var(--border-color);
   cursor: pointer;
   padding: var(--space-1);
   display: flex;
@@ -183,8 +183,8 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
   gap: var(--space-1);
 }
 .tag {
-  background: #F0F0F0;
-  color: #555;
+  background: var(--tag-bg);
+  color: var(--tag-color);
   padding: 0.3rem 0.8rem;
   border-radius: 1rem;
   font-size: 0.85rem;
@@ -203,7 +203,7 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
   border-radius: 1rem;
   overflow: hidden; /* [Part2] 確保圖片不超出圓角 */
   margin-bottom: var(--space-4);
-  background-color: #d5cfc6; /* 圖片載入前的佔位背景色 */
+  background-color: var(--placeholder-bg);
 }
 /* [Part2] 大圖填滿容器，object-fit: cover 裁切多餘部分保持比例 */
 .project-image-large img {
@@ -226,7 +226,7 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
 }
 
 .info-card {
-  background: #f8f9fa;
+  background: var(--surface-secondary);
   padding: var(--space-4);
   border-radius: 1rem;
   margin-top: 2rem;
@@ -251,8 +251,8 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
 .link-btn {
   display: block;
   padding: var(--space-2);
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   text-decoration: none;
   color: var(--text-primary);
@@ -272,7 +272,7 @@ onUnmounted(() => window.removeEventListener('scroll', handlePageScroll))
   bottom: var(--space-4);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--scroll-hint-bg);
   padding: var(--space-2) var(--space-3);
   border-radius: 2rem;
   font-size: 0.9rem;

@@ -255,7 +255,7 @@ const targetColor = computed(() => {
   bottom: var(--space-2);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--scroll-hint-bg);
   padding: var(--space-1) var(--space-2);
   border-radius: 2rem;
   font-size: 0.8rem;
@@ -363,7 +363,7 @@ const targetColor = computed(() => {
   line-height: 1.6;
 }
 .feed-item .arrow {
-  color: #ccc;
+  color: var(--border-color);
   margin-right: var(--space-1);
 }
 .text.highlight {

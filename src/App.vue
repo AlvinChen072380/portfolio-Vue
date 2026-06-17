@@ -53,6 +53,15 @@ const onLeave = (el, done) => {
   --accent-color: #B53A26;
   --accent-hover: #9A301E;
   --card-bg: #FFFFFF;
+  --surface-secondary: #f5f5f5;
+  --tag-bg: #efefef;
+  --tag-color: #555555;
+  --border-color: #e0e0e0;
+  --skill-logo-bg: #e9ecef;
+  --scroll-hint-bg: rgba(255, 255, 255, 0.92);
+  --placeholder-bg: #d5cfc6;
+  --btn-dark-bg: #333333;
+  --btn-dark-color: #ffffff;
 
   /* Shadow Elevation System — 暖棕調陰影，與 #EBE4DB 背景自然融合 */
   --shadow-sm: 0 2px 8px rgba(70, 50, 30, 0.07);
@@ -119,6 +128,31 @@ body {
   margin-top: var(--space-4);
   /* [Layout] 全站底部統一留白，消除內容貼底的壓迫感 */
   padding-bottom: var(--space-8);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a1a;
+    --card-bg: #252525;
+    --surface-secondary: #2e2e2e;
+    --text-primary: #e8e8e8;
+    --text-muted: #909090;
+    --tag-bg: #383838;
+    --tag-color: #c0c0c0;
+    --border-color: #444444;
+    --skill-logo-bg: #3d3d3d;
+    --scroll-hint-bg: rgba(35, 35, 35, 0.92);
+    --placeholder-bg: #3a3736;
+    --btn-dark-bg: #e8e8e8;
+    --btn-dark-color: #1a1a1a;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+    --glow-color-1: rgba(80, 120, 200, 0.18);
+    --glow-color-2: rgba(181, 57, 38, 0.15);
+    --glow-line-color: rgba(120, 155, 230, 0.3);
+    --glow-line-bloom: rgba(80, 120, 200, 0.15);
+  }
 }
 
 @media (max-width: 768px) {

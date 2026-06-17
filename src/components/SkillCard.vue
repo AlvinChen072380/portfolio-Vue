@@ -40,19 +40,19 @@ defineProps({
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: 1rem;
-  background: #f8f9fa;
+  background: var(--surface-secondary);
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
 }
 .skill-card:hover {
-  background: #f1f3f5;
+  background: var(--tag-bg);
   /* [Shadow] 與 project-card 一致：高層陰影 + 上移 3px */
   box-shadow: var(--shadow-lg);
   transform: translateY(-3px);
 }
 .skill-card.active {
-  background: #fff;
+  background: var(--card-bg);
   border-color: var(--accent-color);
   /* [Shadow] active 狀態使用 md 層級 */
   box-shadow: var(--shadow-md);
@@ -60,7 +60,7 @@ defineProps({
 .skill-logo {
   width: 60px;
   height: 60px;
-  background: #e9ecef;
+  background: var(--skill-logo-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -68,7 +68,7 @@ defineProps({
   flex-shrink: 0;
   /* [Logo] FA icon 大小 */
   font-size: 1.8rem;
-  color: #495057;
+  color: var(--text-muted);
 }
 /* [Logo] PNG 圖片置中填滿圓形容器 */
 .skill-logo img {
@@ -89,7 +89,7 @@ defineProps({
   gap: var(--space-0-5);
 }
 .star {
-  color: #dee2e6;
+  color: var(--border-color);
   font-size: 1.2rem;
 }
 .star.filled {

@@ -264,7 +264,7 @@ onUnmounted(() => gsapCtx?.revert());
   aspect-ratio: 16/9;
   /* [Layout] 圖片高度上限：防止 7fr 寬欄讓 16/9 圖片超過 260px 高度驅動整體版面 */
   max-height: 460px;
-  background-color: #d5cfc6;
+  background-color: var(--placeholder-bg);
   overflow: hidden;
 }
 /* [Part2] 圖片填滿容器並維持比例，不變形 */
@@ -289,8 +289,8 @@ onUnmounted(() => gsapCtx?.revert());
 }
 
 .tag {
-  background: #f0f0f0;
-  color: #555;
+  background: var(--tag-bg);
+  color: var(--tag-color);
   padding: 0.3rem 0.8rem;
   border-radius: 1rem;
   font-size: 0.75rem;
@@ -318,20 +318,20 @@ onUnmounted(() => gsapCtx?.revert());
   text-decoration: none; /* [Fix #6] <a> 標籤在部分瀏覽器預設有底線，需明確覆蓋 */
 }
 .btn-details {
-  background: var(--text-primary);
-  color: white;
+  background: var(--btn-dark-bg);
+  color: var(--btn-dark-color);
   width: 300px;
 }
 .btn-details:hover {
   background: var(--accent-color);
 }
 .btn-demo {
-  background: #f1f3f5;
+  background: var(--tag-bg);
   color: var(--text-primary);
   text-decoration: none;
 }
 .btn-demo:hover {
-  background: #e9ecef;
+  background: var(--skill-logo-bg);
 }
 
 /* 愛心按鈕樣式 */
@@ -433,7 +433,7 @@ onUnmounted(() => gsapCtx?.revert());
 }
 
 .feed-item .arrow {
-  color: #ccc;
+  color: var(--border-color);
   margin-right: var(--space-1);
 }
 

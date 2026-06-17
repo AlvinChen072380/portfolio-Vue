@@ -114,11 +114,11 @@ onUnmounted(() => gsapCtx?.revert())
   width: 100%;
   aspect-ratio: 3/4;
   border-radius: 1.5rem;
-  background-color: #d5cfc6;
+  background-color: var(--placeholder-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: var(--text-muted);
   font-size: 1.5rem;
   font-weight: bold;
   overflow: hidden;
@@ -142,7 +142,7 @@ onUnmounted(() => gsapCtx?.revert())
 .tag-pill {
   align-self: flex-start;
   padding: var(--space-1) var(--space-2);
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 2rem;
   font-size: 0.9rem;
   font-weight: 500;
