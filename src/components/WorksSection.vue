@@ -47,6 +47,30 @@ const systemFeeds = computed(() => activeProject.value.feeds);
 // [GSAP Step H] template refs — 指向要動畫的 DOM 元素
 const titleRef = ref(null);
 const cardRef = ref(null);
+const sideCardsRef = ref(null);
+
+// 防止連點觸發重疊動畫
+let isAnimating = false;
+
+const selectPage = (index) => {
+  if (index === activeProjectIndex.value || isAnimating) return;
+  isAnimating = true;
+  const targets = [cardRef.value, sideCardsRef.value];
+  gsap.to(targets, {
+    opacity: 0,
+    duration: 0.18,
+    ease: "power2.in",
+    onComplete: () => {
+      activeProjectIndex.value = index;
+      gsap.to(targets, {
+        opacity: 1,
+        duration: 0.25,
+        ease: "power2.out",
+        onComplete: () => { isAnimating = false; },
+      });
+    },
+  });
+};
 
 // [GSAP Fix] gsap.context() 追蹤所有動畫，onUnmounted 時統一清除
 let gsapCtx = null;
@@ -130,7 +154,7 @@ onUnmounted(() => gsapCtx?.revert());
       </div>
 
       <!-- 右側：系統資訊與分數卡片 -->
-      <div class="side-cards">
+      <div class="side-cards" ref="sideCardsRef">
         <!-- 系統狀態卡片 -->
         <div class="system-feed-card">
           <div class="feed-header">
@@ -178,7 +202,7 @@ onUnmounted(() => gsapCtx?.revert());
           :key="project.id"
           class="dot"
           :class="{ active: activeProjectIndex === index }"
-          @click="activeProjectIndex = index"
+          @click="selectPage(index)"
         ></span>
       </div>
     </div>

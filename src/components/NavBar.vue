@@ -111,22 +111,17 @@ const toggleMenu = () => {
     transition: opacity 0.3s ease;
   }
 
-  /* 漢堡選單橢圓光暈：從中心向外拓散漸淡 */
+  /* 漢堡選單橢圓光暈：從中心向外拓散，填滿整個 overlay */
   .nav-links::before {
     content: '';
     position: absolute;
-    width: 65%;
-    height: 78%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
+    inset: 0;
     pointer-events: none;
     z-index: -1;
-    background: radial-gradient(ellipse at center,
+    background: radial-gradient(ellipse 65% 78% at center,
       rgba(210, 111, 50, 0.30) 0%,
       rgba(181, 57, 38, 0.15) 45%,
-      transparent 70%
+      rgba(245, 244, 244, 0) 100%
     );
   }
   

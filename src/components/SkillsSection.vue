@@ -37,6 +37,31 @@ const handleScroll = (e) => {
 // [GSAP Step I] template refs — 標題與技能卡片容器
 const titleRef = ref(null);
 const skillListRef = ref(null);
+const skillsWrapperRef = ref(null);
+const sideCardsRef = ref(null);
+
+// 防止連點觸發重疊動畫
+let isAnimating = false;
+
+const selectCategory = (index) => {
+  if (index === activeCategoryIndex.value || isAnimating) return;
+  isAnimating = true;
+  const targets = [skillsWrapperRef.value, sideCardsRef.value];
+  gsap.to(targets, {
+    opacity: 0,
+    duration: 0.18,
+    ease: "power2.in",
+    onComplete: () => {
+      activeCategoryIndex.value = index;
+      gsap.to(targets, {
+        opacity: 1,
+        duration: 0.25,
+        ease: "power2.out",
+        onComplete: () => { isAnimating = false; },
+      });
+    },
+  });
+};
 
 // [GSAP Fix] gsap.context() 追蹤所有動畫，onUnmounted 時統一清除
 let gsapCtx = null;
@@ -95,7 +120,7 @@ const targetColor = computed(() => {
 
     <div class="works-layout">
       <!-- 左側：技能列表 -->
-      <div class="project-card skills-wrapper">
+      <div class="project-card skills-wrapper" ref="skillsWrapperRef">
         <div class="skills-container" @scroll="handleScroll">
           <div class="skills-list" ref="skillListRef">
             <SkillCard
@@ -118,7 +143,7 @@ const targetColor = computed(() => {
       </div>
 
       <!-- 右側：系統資訊與分數卡片 -->
-      <div class="side-cards">
+      <div class="side-cards" ref="sideCardsRef">
         <!-- 系統狀態卡片 -->
         <div class="system-feed-card">
           <div class="feed-header">
@@ -171,7 +196,7 @@ const targetColor = computed(() => {
           :key="cat.id"
           class="dot"
           :class="{ active: activeCategoryIndex === index }"
-          @click="activeCategoryIndex = index"
+          @click="selectCategory(index)"
         ></span>
       </div>
     </div>
